@@ -2,6 +2,8 @@ package com.limelight;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import com.limelight.utils.CacheHelper;
+import java.io.StringReader;
 import java.net.UnknownHostException;
 
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
@@ -56,6 +58,10 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.ProgressBar;
+import android.widget.ImageView;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -73,6 +79,16 @@ import javax.microedition.khronos.opengles.GL10;
 public class PcView extends AppCompatActivity implements AdapterFragmentCallbacks {
     private RelativeLayout noPcFoundLayout;
     private PcGridAdapter pcGridAdapter;
+
+    // The big card: the PC you picked, or the one you most likely want
+    private String pickedUuid;
+    private ComputerDetails heroComputer;
+    // Set by "Wake and connect"; connects as soon as that PC comes up
+    private String connectWhenAwakeUuid;
+    private TextView heroName, heroStatus;
+    private TextView heroButton;
+    private ImageView heroIcon;
+    private ProgressBar heroSpinner;
     private ShortcutHelper shortcutHelper;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private boolean freezeUpdates, runningPolling, inForeground, completeOnCreateCalled;
@@ -155,7 +171,7 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
 
         // Setup the list view
         ImageButton settingsButton = findViewById(R.id.settingsButton);
-        ImageButton addComputerButton = findViewById(R.id.manuallyAddPc);
+        View addComputerButton = findViewById(R.id.manuallyAddPc);
         ImageButton helpButton = findViewById(R.id.helpButton);
         ExtendedFloatingActionButton profilesButton = findViewById(R.id.profilesButton);
 
@@ -192,6 +208,18 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
             helpButton.setVisibility(View.GONE);
         }
 
+        heroName = findViewById(R.id.heroName);
+        heroStatus = findViewById(R.id.heroStatus);
+        heroButton = findViewById(R.id.heroButton);
+        heroIcon = findViewById(R.id.heroIcon);
+        heroSpinner = findViewById(R.id.heroSpinner);
+        heroButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onHeroAction();
+            }
+        });
+
         getFragmentManager().beginTransaction()
             .replace(R.id.pcFragmentContainer, new AdapterFragment())
             .commitAllowingStateLoss();
@@ -203,7 +231,150 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
         else {
             noPcFoundLayout.setVisibility(View.INVISIBLE);
         }
+        refreshHero();
+    }
+
+    public static boolean canWake(ComputerDetails details) {
+        return details.macAddress != null && !details.macAddress.equals("00:00:00:00:00:00");
+    }
+
+    private ComputerDetails pickHero() {
+        ComputerDetails best = null;
+        int bestScore = -1;
+        for (int i = 0; i < pcGridAdapter.getCount(); i++) {
+            ComputerDetails details = ((ComputerObject) pcGridAdapter.getItem(i)).details;
+            if (details.uuid.equals(pickedUuid)) {
+                return details;
+            }
+
+            // Prefer a paired PC that's awake, then any awake PC, then one we can wake
+            int score;
+            if (details.state == ComputerDetails.State.ONLINE) {
+                score = details.pairState == PairState.PAIRED ? 3 : 2;
+            }
+            else {
+                score = canWake(details) ? 1 : 0;
+            }
+            if (score > bestScore) {
+                best = details;
+                bestScore = score;
+            }
+        }
+        return best;
+    }
+
+    private void refreshHero() {
+        heroComputer = pickHero();
+        pcGridAdapter.setHeroUuid(heroComputer != null ? heroComputer.uuid : null);
         pcGridAdapter.notifyDataSetChanged();
+
+        if (heroComputer == null) {
+            heroIcon.setVisibility(View.INVISIBLE);
+            heroSpinner.setVisibility(View.VISIBLE);
+            heroName.setText(R.string.si_looking);
+            heroStatus.setText(R.string.si_looking_detail);
+            heroButton.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        boolean waking = heroComputer.uuid.equals(connectWhenAwakeUuid);
+        boolean unknown = heroComputer.state == ComputerDetails.State.UNKNOWN;
+        heroIcon.setVisibility(unknown || waking ? View.INVISIBLE : View.VISIBLE);
+        heroSpinner.setVisibility(unknown || waking ? View.VISIBLE : View.GONE);
+        heroIcon.setAlpha(heroComputer.state == ComputerDetails.State.ONLINE ? 1.0f : 0.5f);
+        heroName.setText(heroComputer.name);
+
+        int status;
+        int button = 0;
+        if (waking) {
+            status = R.string.si_status_waking;
+        }
+        else if (unknown) {
+            status = R.string.si_status_checking;
+        }
+        else if (heroComputer.state == ComputerDetails.State.OFFLINE) {
+            if (canWake(heroComputer)) {
+                status = R.string.si_status_asleep;
+                button = R.string.si_wake_connect;
+            }
+            else {
+                status = R.string.si_status_offline;
+            }
+        }
+        else if (heroComputer.pairState != PairState.PAIRED) {
+            status = R.string.si_status_unpaired;
+            button = R.string.si_pair;
+        }
+        else {
+            status = heroComputer.runningGameId != 0 ? R.string.si_status_session : R.string.si_status_ready;
+            button = R.string.si_connect;
+        }
+
+        heroStatus.setText(status);
+        if (button != 0) {
+            heroButton.setText(button);
+            heroButton.setVisibility(View.VISIBLE);
+        }
+        else {
+            heroButton.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private void onHeroAction() {
+        ComputerDetails computer = heroComputer;
+        if (computer == null) {
+            return;
+        }
+
+        if (computer.state == ComputerDetails.State.OFFLINE) {
+            connectWhenAwakeUuid = computer.uuid;
+            doWakeOnLan(computer);
+            refreshHero();
+        }
+        else if (computer.pairState != PairState.PAIRED) {
+            doPair(computer, null, null);
+        }
+        else {
+            doConnect(computer);
+        }
+    }
+
+    // Connect goes straight to the desktop: resume the running session, or start Desktop
+    private void doConnect(ComputerDetails computer) {
+        if (managerBinder == null) {
+            Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (computer.runningGameId != 0) {
+            ServerHelper.doStart(this, new NvApp("app", null, computer.runningGameId, false), computer, managerBinder, false);
+            return;
+        }
+
+        NvApp desktop = null;
+        try {
+            String rawAppList = computer.rawAppList;
+            if (rawAppList == null) {
+                rawAppList = CacheHelper.readInputStreamToString(CacheHelper.openCacheFileForInput(getCacheDir(), "applist", computer.uuid));
+            }
+            for (NvApp app : NvHTTP.getAppListByReader(new StringReader(rawAppList))) {
+                if (app.getAppName().equalsIgnoreCase("Desktop")) {
+                    desktop = app;
+                    break;
+                }
+            }
+        } catch (IOException | XmlPullParserException e) {
+            LimeLog.warning("No app list for " + computer.name + ": " + e.getMessage());
+        }
+
+        if (desktop != null) {
+            ServerHelper.doStart(this, desktop, computer, managerBinder,
+                    PreferenceConfiguration.readPreferences(this).useVirtualDisplay);
+        }
+        else {
+            // No Desktop entry on this server; let the user pick from its app list
+            doAppList(computer, false, false);
+        }
     }
 
     @Override
@@ -568,13 +739,13 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
                         }
 
                         if (toastSuccess) {
-                            // Open the app list after a successful pairing attempt
-                            doAppList(computer, true, false);
+                            // Pairing only earns trust; connecting is a separate step from the big card
+                            pickedUuid = computer.uuid;
+                            Toast.makeText(PcView.this, getString(R.string.si_paired, computer.name), Toast.LENGTH_SHORT).show();
                         }
-                        else {
-                            // Start polling again if we're still in the foreground
-                            startComputerUpdates();
-                        }
+
+                        // Start polling again if we're still in the foreground
+                        startComputerUpdates();
                     }
                 });
             }
@@ -841,7 +1012,7 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
                         getResources().getString(R.string.scut_deleted_pc));
 
                 pcGridAdapter.removeComputer(computer);
-                pcGridAdapter.notifyDataSetChanged();
+                refreshHero();
 
                 if (pcGridAdapter.getCount() == 0) {
                     // Show the "Discovery in progress" view
@@ -878,8 +1049,15 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
             noPcFoundLayout.setVisibility(View.INVISIBLE);
         }
 
+        if (details.uuid.equals(connectWhenAwakeUuid) && details.state == ComputerDetails.State.ONLINE) {
+            connectWhenAwakeUuid = null;
+            if (details.pairState == PairState.PAIRED) {
+                doConnect(details);
+            }
+        }
+
         // Notify the view that the data has changed
-        pcGridAdapter.notifyDataSetChanged();
+        refreshHero();
     }
 
     @Override
@@ -894,20 +1072,12 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
                                     long id) {
+                // A small card brings that PC into the big card; long-press for the full menu
                 ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
-                if (computer.details.state == ComputerDetails.State.UNKNOWN ||
-                    computer.details.state == ComputerDetails.State.OFFLINE) {
-                    // Open the context menu if a PC is offline or refreshing
-                    openContextMenu(arg1);
-                } else if (computer.details.pairState != PairState.PAIRED) {
-                    // Pair an unpaired machine by default
-                    doPair(computer.details, null, null);
-                } else {
-                    doAppList(computer.details, false, false);
-                }
+                pickedUuid = computer.details.uuid;
+                refreshHero();
             }
         });
-        UiHelper.applyStatusBarPadding(listView);
         registerForContextMenu(listView);
     }
 

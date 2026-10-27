@@ -2,6 +2,7 @@ package com.limelight.grid;
 
 import android.content.Context;
 import android.view.View;
+import android.graphics.drawable.GradientDrawable;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -17,6 +18,13 @@ import java.util.Collections;
 import java.util.Comparator;
 
 public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
+
+    // The PC shown in the big card, highlighted in the row
+    private String heroUuid;
+
+    public void setHeroUuid(String uuid) {
+        heroUuid = uuid;
+    }
 
     public PcGridAdapter(Context context, PreferenceConfiguration prefs) {
         super(context, getLayoutIdForPreferences(prefs));
@@ -51,44 +59,51 @@ public class PcGridAdapter extends GenericGridAdapter<PcView.ComputerObject> {
 
     @Override
     public void populateView(View parentView, ImageView imgView, RelativeLayout gridMask, ProgressBar prgView, TextView txtView, ImageView overlayView, PcView.ComputerObject obj) {
-        imgView.setImageResource(R.drawable.ic_computer);
-        if (obj.details.state == ComputerDetails.State.ONLINE) {
-            imgView.setAlpha(1.0f);
+        ComputerDetails details = obj.details;
+        boolean online = details.state == ComputerDetails.State.ONLINE;
+        boolean unknown = details.state == ComputerDetails.State.UNKNOWN;
+
+        imgView.setImageResource(R.drawable.ic_si_tower);
+        imgView.setVisibility(unknown ? View.INVISIBLE : View.VISIBLE);
+        imgView.setAlpha(online ? 1.0f : 0.5f);
+        prgView.setVisibility(unknown ? View.VISIBLE : View.GONE);
+
+        txtView.setText(details.name);
+        txtView.setAlpha(online ? 1.0f : 0.6f);
+
+        int statusText;
+        int dotColor;
+        if (unknown) {
+            statusText = R.string.si_short_checking;
+            dotColor = 0xFF98A2B3;
+        }
+        else if (!online) {
+            boolean canWake = PcView.canWake(details);
+            statusText = canWake ? R.string.si_short_asleep : R.string.si_short_offline;
+            dotColor = canWake ? 0xFF98A2B3 : 0xFF4A5463;
+        }
+        else if (details.pairState != PairingManager.PairState.PAIRED) {
+            statusText = R.string.si_short_unpaired;
+            dotColor = 0xFFF59E0B;
+        }
+        else if (details.runningGameId != 0) {
+            statusText = R.string.si_short_session;
+            dotColor = 0xFFF59E0B;
         }
         else {
-            imgView.setAlpha(0.4f);
+            statusText = R.string.si_short_awake;
+            dotColor = 0xFF2DD4BF;
         }
 
-        if (obj.details.state == ComputerDetails.State.UNKNOWN) {
-            prgView.setVisibility(View.VISIBLE);
-        }
-        else {
-            prgView.setVisibility(View.INVISIBLE);
-        }
+        TextView statusView = parentView.findViewById(R.id.grid_status);
+        statusView.setText(statusText);
 
-        txtView.setText(obj.details.name);
-        if (obj.details.state == ComputerDetails.State.ONLINE) {
-            txtView.setAlpha(1.0f);
-        }
-        else {
-            txtView.setAlpha(0.4f);
-        }
+        GradientDrawable dot = new GradientDrawable();
+        dot.setShape(GradientDrawable.OVAL);
+        dot.setColor(dotColor);
+        overlayView.setImageDrawable(dot);
+        overlayView.setVisibility(View.VISIBLE);
 
-        if (obj.details.state == ComputerDetails.State.OFFLINE) {
-            overlayView.setImageResource(R.drawable.ic_pc_offline);
-            overlayView.setAlpha(0.4f);
-            overlayView.setVisibility(View.VISIBLE);
-        }
-        // We must check if the status is exactly online and unpaired
-        // to avoid colliding with the loading spinner when status is unknown
-        else if (obj.details.state == ComputerDetails.State.ONLINE &&
-                obj.details.pairState == PairingManager.PairState.NOT_PAIRED) {
-            overlayView.setImageResource(R.drawable.ic_lock);
-            overlayView.setAlpha(1.0f);
-            overlayView.setVisibility(View.VISIBLE);
-        }
-        else {
-            overlayView.setVisibility(View.GONE);
-        }
+        parentView.setActivated(details.uuid.equals(heroUuid));
     }
 }

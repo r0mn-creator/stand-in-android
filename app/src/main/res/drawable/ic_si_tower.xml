@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A plain PC tower: the connection screen never shows the big PC's monitors -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:strokeColor="#E6EAF0" android:strokeWidth="1.5" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M9,2.5h6a2,2 0,0 1,2 2v15a2,2 0,0 1,-2 2h-6a2,2 0,0 1,-2 -2v-15a2,2 0,0 1,2 -2z" />
+    <path android:strokeColor="#E6EAF0" android:strokeWidth="1.5" android:strokeLineCap="round"
+        android:pathData="M10,6.5h4M10,9.5h4" />
+    <path android:strokeColor="#E6EAF0" android:strokeWidth="1.5"
+        android:pathData="M10.75,17a1.25,1.25 0,1 0,2.5 0a1.25,1.25 0,1 0,-2.5 0" />
+</vector>

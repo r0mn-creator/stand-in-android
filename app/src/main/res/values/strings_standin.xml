@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="si_your_pcs">Your PCs</string>
+    <string name="si_add_pc">Add PC</string>
+    <string name="si_looking">Looking for PCs</string>
+    <string name="si_looking_detail">Make sure Stand-In Server is running on your big PC</string>
+    <string name="si_connect">Connect</string>
+    <string name="si_pair">Pair</string>
+    <string name="si_wake_connect">Wake and connect</string>
+    <string name="si_status_ready">Awake · Ready to connect</string>
+    <string name="si_status_session">Awake · Session running</string>
+    <string name="si_status_unpaired">Awake · Not paired yet</string>
+    <string name="si_status_asleep">Asleep · Wakes in a few seconds</string>
+    <string name="si_status_waking">Waking up…</string>
+    <string name="si_status_offline">Offline</string>
+    <string name="si_status_checking">Checking…</string>
+    <string name="si_short_awake">Awake</string>
+    <string name="si_short_session">In use</string>
+    <string name="si_short_unpaired">Not paired</string>
+    <string name="si_short_asleep">Asleep</string>
+    <string name="si_short_offline">Offline</string>
+    <string name="si_short_checking">Checking</string>
+    <string name="si_paired">Paired with %1$s</string>
+</resources>
