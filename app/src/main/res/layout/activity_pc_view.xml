@@ -49,14 +49,32 @@
 
     </RelativeLayout>
 
+    <TextView
+        android:id="@+id/versionTag"
+        android:layout_width="wrap_content"
+        android:layout_height="26dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="14dp"
+        android:layout_marginLeft="14dp"
+        android:layout_marginTop="19dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:gravity="center"
+        android:background="@drawable/version_tag_background"
+        android:text="@string/release_tag"
+        android:textColor="#98A2B3"
+        android:textSize="12sp" />
+
     <ImageButton
         android:id="@+id/settingsButton"
         android:layout_width="70dp"
         android:layout_height="65dp"
         android:cropToPadding="false"
         android:scaleType="fitXY"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
+        android:layout_toRightOf="@+id/versionTag"
+        android:layout_toEndOf="@+id/versionTag"
         android:layout_alignParentTop="true"
         android:src="@drawable/ic_settings"
         android:preferKeepClear="true"

@@ -11,8 +11,11 @@ android {
         minSdk 21
         targetSdk 34
 
-        versionName "20.2.6"
-        versionCode = 57
+        versionName "0.1.0"
+        versionCode = 1
+
+        // Release tag shown at the top left of the PC list so testers can tell builds apart
+        resValue "string", "release_tag", "Beta 1 \u00b7 0.1.0"
 
         // Generate native debug symbols to allow Google Play to symbolicate our native crashes
         ndk.debugSymbolLevel = 'FULL'
@@ -36,11 +39,8 @@ android {
                 }
             }
 
-            resValue "string",
-                    "obtainium_app_url",
-                    "data:text/html;base64,PGgxPlJvb3QgYnVpbGQgaXMgbm90IGF2YWlsYWJsZTwvaDE+"
-
-            applicationId "com.limelight.root"
+            
+            applicationId "app.standin.client.root"
             dimension "root"
             buildConfigField "boolean", "ROOT_BUILD", "true"
         }
@@ -52,11 +52,8 @@ android {
                 }
             }
 
-            resValue "string",
-                    "obtainium_app_url",
-                    "https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.limelight.noir%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FClassicOldSong%2Fmoonlight-android%22%2C%22author%22%3A%22ClassicOldSong%22%2C%22name%22%3A%22Artemis%22%2C%22additionalSettings%22%3A%22%7B%5C%22apkFilterRegEx%5C%22%3A%5C%22nonRoot%5C%22%2C%5C%22matchGroutToUse%5C%22%3A%5C%22%241%5C%22%2C%5C%22versionExtractionRegEx%5C%22%3A%5C%22v(.%2B)%5C%22%7D%22%7D"
-
-            applicationId "com.limelight"
+            
+            applicationId "app.standin.client"
             dimension "root"
             buildConfigField "boolean", "ROOT_BUILD", "false"
         }
@@ -95,10 +92,10 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ".noirdebug"
-            resValue "string", "app_label", "Diana"
-            resValue "string", "app_label_root", "Diana (Root)"
-            resValue "string", "app_label_game", "Diana (Game)"
+            applicationIdSuffix ".debug"
+            resValue "string", "app_label", "Stand-In"
+            resValue "string", "app_label_root", "Stand-In (Root)"
+            resValue "string", "app_label_game", "Stand-In (Game)"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -134,10 +131,9 @@ android {
             // is to please change the applicationId before you publish.
             //
             // TL;DR: Leave the following line alone!
-            applicationIdSuffix ".noir"
-            resValue "string", "app_label", "Artemis"
-            resValue "string", "app_label_root", "Artemis (Root)"
-            resValue "string", "app_label_game", "Artemis (Game)"
+            resValue "string", "app_label", "Stand-In"
+            resValue "string", "app_label_root", "Stand-In (Root)"
+            resValue "string", "app_label_game", "Stand-In (Game)"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
