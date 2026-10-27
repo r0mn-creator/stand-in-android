@@ -112,7 +112,7 @@ public class GameMenu implements Game.GameMenuCallbacks {
         AlertDialog.Builder builder = new AlertDialog.Builder(themedContext);
         builder.setTitle(title);
 
-        final ArrayAdapter<String> actions = new ArrayAdapter<>(themedContext, android.R.layout.simple_list_item_1);
+        final ArrayAdapter<String> actions = new ArrayAdapter<>(themedContext, R.layout.si_menu_item);
 
         builder.setAdapter(actions, (dialog, which) -> {
             String label = actions.getItem(which);

@@ -43,6 +43,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AbsListView;
+import android.database.DataSetObserver;
+import android.view.Gravity;
+import android.widget.FrameLayout;
+import android.widget.GridView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
@@ -326,6 +330,8 @@ public class AppView extends AppCompatActivity implements AdapterFragmentCallbac
         }
 
         String computerName = getIntent().getStringExtra(NAME_EXTRA);
+
+        findViewById(R.id.siBackButton).setOnClickListener(v -> finish());
 
         TextView label = findViewById(R.id.appListText);
         setTitle(computerName);
@@ -740,9 +746,38 @@ public class AppView extends AppCompatActivity implements AdapterFragmentCallbac
                     R.layout.app_grid_view_small : R.layout.app_grid_view;
     }
 
+    private void centerAppGrid(GridView gridView) {
+        View parent = (View) gridView.getParent();
+        int columnWidth = gridView.getRequestedColumnWidth();
+        if (parent == null || parent.getWidth() == 0 || columnWidth <= 0) {
+            return;
+        }
+
+        int padding = gridView.getPaddingStart() + gridView.getPaddingEnd();
+        int fit = Math.max(1, (parent.getWidth() - padding) / columnWidth);
+        int columns = Math.max(1, Math.min(appGridAdapter.getCount(), fit));
+
+        gridView.setStretchMode(GridView.NO_STRETCH);
+        gridView.setNumColumns(columns);
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) gridView.getLayoutParams();
+        params.width = columns * columnWidth + padding;
+        params.gravity = Gravity.CENTER_HORIZONTAL;
+        gridView.setLayoutParams(params);
+    }
+
     @Override
     public void receiveAbsListView(AbsListView listView) {
         listView.setAdapter(appGridAdapter);
+
+        // Keep the cards centered: the grid is only as wide as the columns it needs
+        final GridView gridView = (GridView) listView;
+        appGridAdapter.registerDataSetObserver(new DataSetObserver() {
+            @Override
+            public void onChanged() {
+                gridView.post(() -> centerAppGrid(gridView));
+            }
+        });
+        gridView.post(() -> centerAppGrid(gridView));
         listView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int pos,

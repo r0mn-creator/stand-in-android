@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Focus ring for app cards, drawn over the card with the same corners -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android" android:inset="6dp">
+    <shape android:shape="rectangle">
+        <solid android:color="#00000000" />
+        <stroke android:width="2dp" android:color="@color/si_accent_light" />
+        <corners android:radius="22dp" />
+    </shape>
+</inset>

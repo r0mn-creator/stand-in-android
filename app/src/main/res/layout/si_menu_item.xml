@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One row of a Stand-In list dialog, such as the in-session menu -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/text1"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="52dp"
+    android:gravity="center_vertical"
+    android:paddingStart="32dp"
+    android:paddingEnd="32dp"
+    android:background="@drawable/si_menu_row"
+    android:textColor="@color/si_text"
+    android:textSize="16sp" />

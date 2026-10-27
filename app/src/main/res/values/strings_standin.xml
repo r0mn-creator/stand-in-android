@@ -21,4 +21,8 @@
     <string name="si_short_offline">Offline</string>
     <string name="si_short_checking">Checking</string>
     <string name="si_paired">Paired with %1$s</string>
+    <string name="si_back">Back</string>
+    <string name="si_choose_app">Choose what to open</string>
+    <string name="si_app_running">Running</string>
+    <string name="si_app_hidden">Hidden</string>
 </resources>

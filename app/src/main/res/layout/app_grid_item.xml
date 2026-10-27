@@ -1,47 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="170dp"
-    android:layout_height="220dp">
+    android:layout_width="184dp"
+    android:layout_height="236dp"
+    android:padding="8dp">
 
-    <androidx.cardview.widget.CardView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="10dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="8dp"
-        app:cardMaxElevation="8dp">
+        android:background="@drawable/si_app_card"
+        android:orientation="vertical"
+        android:padding="10dp">
 
-        <ImageView
-            android:id="@+id/grid_image"
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:cropToPadding="false"
-            android:scaleType="centerCrop" />
-
-        <RelativeLayout
-            android:id="@+id/grid_mask"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:cardBackgroundColor="@color/si_ground"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp">
 
             <ImageView
-                android:id="@+id/grid_overlay"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="50dp" />
-
-            <TextView
-                android:id="@+id/grid_text"
+                android:id="@+id/grid_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@id/grid_overlay"
-                android:layout_margin="5dp"
-                android:gravity="center|center_vertical"
-                android:background="#00FFFFFF"
-                android:textAlignment="center"
-                android:textSize="18sp" />
-        </RelativeLayout>
+                android:scaleType="centerCrop" />
 
-    </androidx.cardview.widget.CardView>
-</RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/grid_mask"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/grid_overlay"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_centerInParent="true" />
+
+                <!-- Shown by the art loader only when there is no artwork -->
+                <TextView
+                    android:id="@+id/grid_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:padding="8dp"
+                    android:textColor="@color/si_muted"
+                    android:textSize="16sp" />
+            </RelativeLayout>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/si_app_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="1"
+            android:textColor="@color/si_text"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/si_app_state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:paddingTop="2dp"
+            android:textColor="@color/si_muted"
+            android:textSize="13sp" />
+    </LinearLayout>
+</FrameLayout>

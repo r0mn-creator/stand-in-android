@@ -183,6 +183,27 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
             gridMask.setBackgroundColor(0x00000000);
         }
 
+        // Name and state under the artwork (the small-icon layout has neither)
+        TextView nameView = parentView.findViewById(R.id.si_app_name);
+        TextView stateView = parentView.findViewById(R.id.si_app_state);
+        if (nameView != null) {
+            nameView.setText(obj.app.getAppName());
+        }
+        if (stateView != null) {
+            stateView.setVisibility(obj.isRunning || obj.isHidden ? View.VISIBLE : View.GONE);
+            if (obj.isRunning) {
+                stateView.setText(R.string.si_app_running);
+                stateView.setTextColor(0xFF2DD4BF);
+            }
+            else if (obj.isHidden) {
+                stateView.setText(R.string.si_app_hidden);
+                stateView.setTextColor(0xFF98A2B3);
+            }
+            else {
+                stateView.setText("");
+            }
+        }
+
         if (obj.isHidden) {
             parentView.setAlpha(0.40f);
         }

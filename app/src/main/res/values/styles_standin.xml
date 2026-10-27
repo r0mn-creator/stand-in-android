@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Every pop-up in the app: rounded Midnight Slate panel, teal capsule buttons -->
+    <style name="SiAlertDialog" parent="android:Theme.Material.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/si_dialog_background</item>
+        <item name="android:colorBackground">@color/si_surface</item>
+        <item name="android:textColorPrimary">@color/si_text</item>
+        <item name="android:textColorSecondary">@color/si_muted</item>
+        <item name="android:textColorAlertDialogListItem">@color/si_text</item>
+        <item name="android:colorAccent">@color/si_accent</item>
+        <item name="android:colorControlActivated">@color/si_accent</item>
+        <item name="android:colorControlHighlight">#332DD4BF</item>
+        <item name="android:windowTitleStyle">@style/SiDialogTitle</item>
+        <item name="android:buttonBarButtonStyle">@style/SiDialogButton</item>
+        <item name="android:buttonBarPositiveButtonStyle">@style/SiDialogButton</item>
+        <item name="android:buttonBarNegativeButtonStyle">@style/SiDialogButton</item>
+        <item name="android:buttonBarNeutralButtonStyle">@style/SiDialogButton</item>
+        <item name="android:windowMinWidthMajor">40%</item>
+        <item name="android:windowMinWidthMinor">80%</item>
+    </style>
+
+    <style name="SiDialogTitle" parent="android:TextAppearance.Material.DialogWindowTitle">
+        <item name="android:textColor">@color/si_text</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- Dialog buttons are inflated as MaterialButtons, so they take Material's color attributes -->
+    <style name="SiDialogButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/si_accent</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:minHeight">44dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="backgroundTint">@color/si_dialog_button_fill</item>
+        <item name="strokeColor">@color/si_dialog_button_stroke</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="rippleColor">#332DD4BF</item>
+        <item name="cornerRadius">22dp</item>
+        <item name="android:defaultFocusHighlightEnabled">false</item>
+    </style>
+
+    <!-- AndroidX and Material builders read their own attributes -->
+    <style name="SiAppCompatAlertDialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/si_dialog_background</item>
+        <item name="colorSurface">@color/si_surface</item>
+        <item name="colorPrimary">@color/si_accent</item>
+        <item name="colorAccent">@color/si_accent</item>
+        <item name="android:textColorPrimary">@color/si_text</item>
+        <item name="android:textColorSecondary">@color/si_muted</item>
+        <item name="buttonBarButtonStyle">@style/SiDialogButton</item>
+    </style>
+
+    <!-- Long-press menus on PCs and apps -->
+    <style name="SiPopupMenu" parent="Widget.Material3.PopupMenu.ContextMenu">
+        <item name="android:popupBackground">@drawable/si_popup_background</item>
+        <item name="android:popupElevation">12dp</item>
+    </style>
+
+    <style name="SiPopupMenuText" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/si_text</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+</resources>
