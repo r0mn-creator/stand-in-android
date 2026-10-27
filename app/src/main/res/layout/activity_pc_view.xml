@@ -145,11 +145,19 @@
         android:layout_marginTop="12dp"
         android:orientation="horizontal">
 
-        <RelativeLayout
-            android:id="@+id/pcFragmentContainer"
+        <!-- The PC cards scroll sideways once there are more than fit -->
+        <HorizontalScrollView
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:scrollbars="none"
+            android:overScrollMode="never">
+
+            <FrameLayout
+                android:id="@+id/pcFragmentContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+        </HorizontalScrollView>
 
         <LinearLayout
             android:id="@+id/manuallyAddPc"

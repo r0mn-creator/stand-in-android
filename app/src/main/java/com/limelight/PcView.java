@@ -52,9 +52,11 @@ import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.widget.AbsListView;
+import android.widget.GridView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
@@ -87,6 +89,7 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
     private String connectWhenAwakeUuid;
     private TextView heroName, heroStatus;
     private TextView heroButton;
+    private GridView pcGridView;
     private ImageView heroIcon;
     private ProgressBar heroSpinner;
     private ShortcutHelper shortcutHelper;
@@ -263,10 +266,24 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
         return best;
     }
 
+    // One row of cards, as wide as the cards need; the row scrolls when they don't fit
+    private void sizePcRow() {
+        if (pcGridView == null) {
+            return;
+        }
+        int count = Math.max(pcGridAdapter.getCount(), 1);
+        float dp = getResources().getDisplayMetrics().density;
+        pcGridView.setNumColumns(count);
+        ViewGroup.LayoutParams params = pcGridView.getLayoutParams();
+        params.width = Math.round((count * 112 + (count - 1) * 12) * dp);
+        pcGridView.setLayoutParams(params);
+    }
+
     private void refreshHero() {
         heroComputer = pickHero();
         pcGridAdapter.setHeroUuid(heroComputer != null ? heroComputer.uuid : null);
         pcGridAdapter.notifyDataSetChanged();
+        sizePcRow();
 
         if (heroComputer == null) {
             heroIcon.setVisibility(View.INVISIBLE);
@@ -351,22 +368,50 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
             return;
         }
 
-        NvApp desktop = null;
-        try {
-            String rawAppList = computer.rawAppList;
-            if (rawAppList == null) {
+        String rawAppList = computer.rawAppList;
+        if (rawAppList == null) {
+            try {
                 rawAppList = CacheHelper.readInputStreamToString(CacheHelper.openCacheFileForInput(getCacheDir(), "applist", computer.uuid));
+            } catch (IOException e) {
+                // Nothing cached yet, e.g. right after pairing
             }
+        }
+
+        if (rawAppList != null) {
+            startDesktop(computer, findDesktop(computer, rawAppList));
+            return;
+        }
+
+        // Ask the PC for its app list before giving up on going straight to the desktop
+        new Thread(() -> {
+            String fetched = null;
+            try {
+                NvHTTP httpConn = new NvHTTP(ServerHelper.getCurrentAddressFromComputer(computer),
+                        computer.httpsPort, managerBinder.getUniqueId(), computer.serverCert,
+                        PlatformBinding.getCryptoProvider(PcView.this));
+                fetched = httpConn.getAppListRaw();
+            } catch (IOException e) {
+                LimeLog.warning("Couldn't fetch app list for " + computer.name + ": " + e.getMessage());
+            }
+            final NvApp desktop = fetched != null ? findDesktop(computer, fetched) : null;
+            runOnUiThread(() -> startDesktop(computer, desktop));
+        }).start();
+    }
+
+    private static NvApp findDesktop(ComputerDetails computer, String rawAppList) {
+        try {
             for (NvApp app : NvHTTP.getAppListByReader(new StringReader(rawAppList))) {
                 if (app.getAppName().equalsIgnoreCase("Desktop")) {
-                    desktop = app;
-                    break;
+                    return app;
                 }
             }
         } catch (IOException | XmlPullParserException e) {
-            LimeLog.warning("No app list for " + computer.name + ": " + e.getMessage());
+            LimeLog.warning("Bad app list for " + computer.name + ": " + e.getMessage());
         }
+        return null;
+    }
 
+    private void startDesktop(ComputerDetails computer, NvApp desktop) {
         if (desktop != null) {
             ServerHelper.doStart(this, desktop, computer, managerBinder,
                     PreferenceConfiguration.readPreferences(this).useVirtualDisplay);
@@ -1067,7 +1112,9 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
 
     @Override
     public void receiveAbsListView(AbsListView listView) {
+        pcGridView = (GridView) listView;
         listView.setAdapter(pcGridAdapter);
+        sizePcRow();
         listView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
