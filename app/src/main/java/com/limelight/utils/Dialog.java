@@ -3,27 +3,31 @@ package com.limelight.utils;
 import java.util.ArrayList;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.widget.Button;
 
 import com.limelight.R;
+import com.limelight.ui.si.SiDialog;
 
+/**
+ * Message / error dialog (DESIGN.md): the title says what happened, the body is the server's
+ * own message when there is one plus what to try, then an optional "Details" and OK.
+ */
 public class Dialog implements Runnable {
     private final String title;
     private final String message;
+    private final String details;
     private final Activity activity;
     private final Runnable runOnDismiss;
 
-    private AlertDialog alert;
+    private SiDialog alert;
 
     private static final ArrayList<Dialog> rundownDialogs = new ArrayList<>();
 
-    private Dialog(Activity activity, String title, String message, Runnable runOnDismiss)
+    private Dialog(Activity activity, String title, String message, String details, Runnable runOnDismiss)
     {
         this.activity = activity;
         this.title = title;
         this.message = message;
+        this.details = details;
         this.runOnDismiss = runOnDismiss;
     }
 
@@ -31,7 +35,7 @@ public class Dialog implements Runnable {
     {
         synchronized (rundownDialogs) {
             for (Dialog d : rundownDialogs) {
-                if (d.alert.isShowing()) {
+                if (d.alert != null) {
                     d.alert.dismiss();
                 }
             }
@@ -42,7 +46,13 @@ public class Dialog implements Runnable {
 
     public static void displayDialog(final Activity activity, String title, String message, final boolean endAfterDismiss)
     {
-        activity.runOnUiThread(new Dialog(activity, title, message, new Runnable() {
+        displayDialog(activity, title, message, null, endAfterDismiss);
+    }
+
+    /** With technical text behind a "Details" button. */
+    public static void displayDialog(final Activity activity, String title, String message, String details, final boolean endAfterDismiss)
+    {
+        activity.runOnUiThread(new Dialog(activity, title, message, details, new Runnable() {
             @Override
             public void run() {
                 if (endAfterDismiss) {
@@ -54,7 +64,15 @@ public class Dialog implements Runnable {
 
     public static void displayDialog(Activity activity, String title, String message, Runnable runOnDismiss)
     {
-        activity.runOnUiThread(new Dialog(activity, title, message, runOnDismiss));
+        activity.runOnUiThread(new Dialog(activity, title, message, null, runOnDismiss));
+    }
+
+    private void finishDialog() {
+        synchronized (rundownDialogs) {
+            rundownDialogs.remove(Dialog.this);
+            alert.dismiss();
+        }
+        runOnDismiss.run();
     }
 
     @Override
@@ -63,46 +81,18 @@ public class Dialog implements Runnable {
         if (activity.isFinishing())
             return;
 
-        alert = new AlertDialog.Builder(activity).create();
-
-        alert.setTitle(title);
-        alert.setMessage(message);
-        alert.setCancelable(false);
-        alert.setCanceledOnTouchOutside(false);
- 
-        alert.setButton(AlertDialog.BUTTON_POSITIVE, activity.getResources().getText(android.R.string.ok), new DialogInterface.OnClickListener() {
-              public void onClick(DialogInterface dialog, int which) {
-                  synchronized (rundownDialogs) {
-                      rundownDialogs.remove(Dialog.this);
-                      alert.dismiss();
-                  }
-
-                  runOnDismiss.run();
-              }
-        });
-        alert.setButton(AlertDialog.BUTTON_NEUTRAL, activity.getResources().getText(R.string.help), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                synchronized (rundownDialogs) {
-                    rundownDialogs.remove(Dialog.this);
-                    alert.dismiss();
-                }
-
-                runOnDismiss.run();
-
-                HelpLauncher.launchTroubleshooting(activity);
-            }
-        });
-        alert.setOnShowListener(new DialogInterface.OnShowListener(){
-
-            @Override
-            public void onShow(DialogInterface dialog) {
-                // Set focus to the OK button by default
-                Button button = alert.getButton(AlertDialog.BUTTON_POSITIVE);
-                button.setFocusable(true);
-                button.setFocusableInTouchMode(true);
-                button.requestFocus();
-            }
-        });
+        alert = new SiDialog(activity)
+                .title(title)
+                .body(message)
+                .cancelable(false);
+        if (details != null && !details.isEmpty()) {
+            alert.secondary(activity.getString(R.string.si_details), d -> new SiDialog(activity)
+                    .title(title)
+                    .body(details)
+                    .primary(activity.getString(R.string.si_ok), null)
+                    .show());
+        }
+        alert.primary(activity.getString(R.string.si_ok), d -> finishDialog());
 
         synchronized (rundownDialogs) {
             rundownDialogs.add(this);

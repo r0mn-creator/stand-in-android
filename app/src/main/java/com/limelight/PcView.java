@@ -31,6 +31,11 @@ import com.limelight.utils.HelpLauncher;
 import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.UiHelper;
+import com.limelight.ui.si.Si;
+import com.limelight.ui.si.SiDialog;
+import com.limelight.ui.si.SiMenu;
+import com.limelight.ui.si.SiPc;
+import com.limelight.nvstream.http.HostHttpResponseException;
 
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -78,8 +83,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class PcView extends AppCompatActivity implements AdapterFragmentCallbacks {
-    private RelativeLayout noPcFoundLayout;
+public class PcView extends AppCompatActivity {
     private PcGridAdapter pcGridAdapter;
 
     // The big card: the PC you picked, or the one you most likely want
@@ -89,9 +93,11 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
     private String connectWhenAwakeUuid;
     private TextView heroName, heroStatus;
     private TextView heroButton;
-    private GridView pcGridView;
     private ImageView heroIcon;
-    private ProgressBar heroSpinner;
+    private View heroSpinner, heroContent, heroEmpty, heroMore;
+    private LinearLayout pcRow;
+    private SiDialog pairDialog;
+    private static final String LAST_USED_PREF = "si_last_used_pc";
     private ShortcutHelper shortcutHelper;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private boolean freezeUpdates, runningPolling, inForeground, completeOnCreateCalled;
@@ -169,79 +175,51 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
         // Set default preferences if we've never been run
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
-        // Set the correct layout for the PC grid
         pcGridAdapter.updateLayoutWithPreferences(this, PreferenceConfiguration.readPreferences(this));
 
-        // Setup the list view
-        ImageButton settingsButton = findViewById(R.id.settingsButton);
-        View addComputerButton = findViewById(R.id.manuallyAddPc);
-        ImageButton helpButton = findViewById(R.id.helpButton);
-        ExtendedFloatingActionButton profilesButton = findViewById(R.id.profilesButton);
-
-        settingsButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(PcView.this, StreamSettings.class));
-            }
-        });
-        addComputerButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(PcView.this, AddComputerManually.class);
-                startActivity(i);
-            }
-        });
-        helpButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                HelpLauncher.launchSetupGuide(PcView.this);
-            }
-        });
-        profilesButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(PcView.this, ProfilesActivity.class));
-            }
-        });
-
-        // Amazon review didn't like the help button because the wiki was not entirely
-        // navigable via the Fire TV remote (though the relevant parts were). Let's hide
-        // it on Fire TV.
-        if (getPackageManager().hasSystemFeature("amazon.hardware.fire_tv")) {
-            helpButton.setVisibility(View.GONE);
-        }
+        findViewById(R.id.settingsButton).setOnClickListener(v ->
+                startActivity(new Intent(PcView.this, StreamSettings.class)));
+        findViewById(R.id.devicesButton).setOnClickListener(v ->
+                startActivity(new Intent(PcView.this, DevicesActivity.class)));
+        findViewById(R.id.manuallyAddPc).setOnClickListener(v -> showAddPc());
+        findViewById(R.id.heroAddManually).setOnClickListener(v -> showAddPc());
 
         heroName = findViewById(R.id.heroName);
         heroStatus = findViewById(R.id.heroStatus);
         heroButton = findViewById(R.id.heroButton);
         heroIcon = findViewById(R.id.heroIcon);
         heroSpinner = findViewById(R.id.heroSpinner);
-        heroButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onHeroAction();
+        heroContent = findViewById(R.id.heroContent);
+        heroEmpty = findViewById(R.id.heroEmpty);
+        heroMore = findViewById(R.id.heroMore);
+        pcRow = findViewById(R.id.pcRow);
+        findViewById(R.id.homeScroll).setVerticalScrollBarEnabled(false);
+        heroButton.setOnClickListener(v -> onHeroAction());
+        heroMore.setOnClickListener(v -> {
+            if (heroComputer != null) {
+                showPcMenu(heroComputer, heroMore);
             }
         });
 
-        getFragmentManager().beginTransaction()
-            .replace(R.id.pcFragmentContainer, new AdapterFragment())
-            .commitAllowingStateLoss();
-
-        noPcFoundLayout = findViewById(R.id.no_pc_found_layout);
-        if (pcGridAdapter.getCount() == 0) {
-            noPcFoundLayout.setVisibility(View.VISIBLE);
-        }
-        else {
-            noPcFoundLayout.setVisibility(View.INVISIBLE);
-        }
         refreshHero();
+        heroButton.post(() -> {
+            if (heroButton.getVisibility() == View.VISIBLE) {
+                heroButton.requestFocus();
+            }
+        });
+    }
+
+    private void showAddPc() {
+        startActivity(new Intent(PcView.this, AddComputerManually.class));
     }
 
     public static boolean canWake(ComputerDetails details) {
-        return details.macAddress != null && !details.macAddress.equals("00:00:00:00:00:00");
+        return SiPc.canWake(details);
     }
 
+    // The hero: the PC you picked, else the last-used awake PC, else the first paired PC, else the first PC
     private ComputerDetails pickHero() {
+        String lastUsed = getSharedPreferences(LAST_USED_PREF, MODE_PRIVATE).getString("uuid", null);
         ComputerDetails best = null;
         int bestScore = -1;
         for (int i = 0; i < pcGridAdapter.getCount(); i++) {
@@ -250,10 +228,20 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
                 return details;
             }
 
-            // Prefer a paired PC that's awake, then any awake PC, then one we can wake
+            boolean online = details.state == ComputerDetails.State.ONLINE;
+            boolean paired = details.pairState == PairState.PAIRED;
             int score;
-            if (details.state == ComputerDetails.State.ONLINE) {
-                score = details.pairState == PairState.PAIRED ? 3 : 2;
+            if (online && details.uuid.equals(lastUsed)) {
+                score = 5;
+            }
+            else if (online && paired) {
+                score = 4;
+            }
+            else if (paired || details.uuid.equals(lastUsed)) {
+                score = 3;
+            }
+            else if (online) {
+                score = 2;
             }
             else {
                 score = canWake(details) ? 1 : 0;
@@ -266,74 +254,82 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
         return best;
     }
 
-    // One row of cards, as wide as the cards need; the row scrolls when they don't fit
-    private void sizePcRow() {
-        if (pcGridView == null) {
+    private void rememberLastUsed(ComputerDetails computer) {
+        getSharedPreferences(LAST_USED_PREF, MODE_PRIVATE).edit().putString("uuid", computer.uuid).apply();
+    }
+
+    // One row of tiles; each tile is its own focus stop so the D-pad walks along the row
+    private void rebuildTiles() {
+        if (pcRow == null) {
             return;
         }
-        int count = Math.max(pcGridAdapter.getCount(), 1);
-        float dp = getResources().getDisplayMetrics().density;
-        pcGridView.setNumColumns(count);
-        ViewGroup.LayoutParams params = pcGridView.getLayoutParams();
-        params.width = Math.round((count * 112 + (count - 1) * 12) * dp);
-        pcGridView.setLayoutParams(params);
+        int count = pcGridAdapter.getCount();
+        int gap = Si.dp(this, 12);
+        for (int i = 0; i < count; i++) {
+            View existing = i < pcRow.getChildCount() ? pcRow.getChildAt(i) : null;
+            View tile = pcGridAdapter.getView(i, existing, pcRow);
+            if (existing == null) {
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        Si.dp(this, 112), Si.dp(this, 96));
+                lp.setMarginStart(i == 0 ? 0 : gap);
+                pcRow.addView(tile, lp);
+            }
+            final ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(i);
+            tile.setOnClickListener(v -> {
+                // A tile brings that PC into the hero card
+                pickedUuid = computer.details.uuid;
+                refreshHero();
+            });
+            tile.setOnLongClickListener(v -> {
+                showPcMenu(computer.details, v);
+                return true;
+            });
+        }
+        while (pcRow.getChildCount() > count) {
+            pcRow.removeViewAt(pcRow.getChildCount() - 1);
+        }
     }
 
     private void refreshHero() {
-        heroComputer = pickHero();
-        pcGridAdapter.setHeroUuid(heroComputer != null ? heroComputer.uuid : null);
-        pcGridAdapter.notifyDataSetChanged();
-        sizePcRow();
-
-        if (heroComputer == null) {
-            heroIcon.setVisibility(View.INVISIBLE);
-            heroSpinner.setVisibility(View.VISIBLE);
-            heroName.setText(R.string.si_looking);
-            heroStatus.setText(R.string.si_looking_detail);
-            heroButton.setVisibility(View.INVISIBLE);
+        if (heroName == null) {
             return;
         }
+        heroComputer = pickHero();
+        pcGridAdapter.setHeroUuid(heroComputer != null ? heroComputer.uuid : null);
+        pcGridAdapter.setWakingUuid(connectWhenAwakeUuid);
+        rebuildTiles();
 
-        boolean waking = heroComputer.uuid.equals(connectWhenAwakeUuid);
-        boolean unknown = heroComputer.state == ComputerDetails.State.UNKNOWN;
-        heroIcon.setVisibility(unknown || waking ? View.INVISIBLE : View.VISIBLE);
-        heroSpinner.setVisibility(unknown || waking ? View.VISIBLE : View.GONE);
-        heroIcon.setAlpha(heroComputer.state == ComputerDetails.State.ONLINE ? 1.0f : 0.5f);
-        heroName.setText(heroComputer.name);
+        if (heroComputer == null) {
+            // No PCs at all: the hero card becomes the empty state
+            heroContent.setVisibility(View.GONE);
+            heroMore.setVisibility(View.GONE);
+            heroEmpty.setVisibility(View.VISIBLE);
+            return;
+        }
+        heroContent.setVisibility(View.VISIBLE);
+        heroMore.setVisibility(View.VISIBLE);
+        heroEmpty.setVisibility(View.GONE);
 
-        int status;
-        int button = 0;
-        if (waking) {
-            status = R.string.si_status_waking;
-        }
-        else if (unknown) {
-            status = R.string.si_status_checking;
-        }
-        else if (heroComputer.state == ComputerDetails.State.OFFLINE) {
-            if (canWake(heroComputer)) {
-                status = R.string.si_status_asleep;
-                button = R.string.si_wake_connect;
-            }
-            else {
-                status = R.string.si_status_offline;
-            }
-        }
-        else if (heroComputer.pairState != PairState.PAIRED) {
-            status = R.string.si_status_unpaired;
-            button = R.string.si_pair;
-        }
-        else {
-            status = heroComputer.runningGameId != 0 ? R.string.si_status_session : R.string.si_status_ready;
-            button = R.string.si_connect;
-        }
+        SiPc.State state = SiPc.of(heroComputer, heroComputer.uuid.equals(connectWhenAwakeUuid));
+        boolean busy = state == SiPc.State.CHECKING || state == SiPc.State.WAKING;
+        heroIcon.setVisibility(busy ? View.INVISIBLE : View.VISIBLE);
+        heroSpinner.setVisibility(busy ? View.VISIBLE : View.GONE);
+        heroIcon.setImageTintList(android.content.res.ColorStateList.valueOf(Si.color(this,
+                state == SiPc.State.OFFLINE || state == SiPc.State.ASLEEP ? R.color.si_muted : R.color.si_text)));
+        heroName.setText(SiPc.name(this, heroComputer));
+        heroStatus.setText(SiPc.heroText(state));
 
-        heroStatus.setText(status);
+        int button = SiPc.heroButton(state);
+        boolean hadFocus = heroButton.hasFocus();
         if (button != 0) {
             heroButton.setText(button);
             heroButton.setVisibility(View.VISIBLE);
         }
         else {
             heroButton.setVisibility(View.INVISIBLE);
+            if (hadFocus) {
+                heroMore.requestFocus();
+            }
         }
     }
 
@@ -343,21 +339,123 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
             return;
         }
 
-        if (computer.state == ComputerDetails.State.OFFLINE) {
-            connectWhenAwakeUuid = computer.uuid;
-            doWakeOnLan(computer);
-            refreshHero();
-        }
-        else if (computer.pairState != PairState.PAIRED) {
-            doPair(computer, null, null);
-        }
-        else {
-            doConnect(computer);
+        switch (SiPc.of(computer, computer.uuid.equals(connectWhenAwakeUuid))) {
+            case ASLEEP:
+                connectWhenAwakeUuid = computer.uuid;
+                doWakeOnLan(computer);
+                refreshHero();
+                break;
+            case NOT_PAIRED:
+                doPair(computer, null, null);
+                break;
+            case AWAKE:
+            case IN_USE:
+                doConnect(computer);
+                break;
+            default:
+                break;
         }
     }
 
+    private static final int MENU_ALL_APPS = 1, MENU_WAKE = 2, MENU_RENAME = 3, MENU_TEST_NETWORK = 4, MENU_REMOVE = 5;
+
+    // The PC menu (DESIGN.md "Home"): All apps, Wake (asleep only), Rename, Test network, Remove
+    private void showPcMenu(final ComputerDetails computer, View anchor) {
+        SiMenu menu = new SiMenu(this);
+        if (computer.state == ComputerDetails.State.ONLINE && computer.pairState == PairState.PAIRED) {
+            menu.add(MENU_ALL_APPS, R.drawable.ic_si_apps, getString(R.string.si_menu_all_apps));
+        }
+        if (computer.state != ComputerDetails.State.ONLINE && canWake(computer)) {
+            menu.add(MENU_WAKE, R.drawable.ic_si_power, getString(R.string.si_menu_wake));
+        }
+        menu.add(MENU_RENAME, R.drawable.ic_si_sliders, getString(R.string.si_menu_rename));
+        menu.add(MENU_TEST_NETWORK, R.drawable.ic_si_globe, getString(R.string.si_menu_test_network));
+        menu.addDanger(MENU_REMOVE, R.drawable.ic_si_close, getString(R.string.si_menu_remove));
+        menu.listener(id -> {
+            switch (id) {
+                case MENU_ALL_APPS:
+                    doAppList(computer, false, true);
+                    break;
+                case MENU_WAKE:
+                    doWakeOnLan(computer);
+                    break;
+                case MENU_RENAME:
+                    showRename(computer);
+                    break;
+                case MENU_TEST_NETWORK:
+                    ServerHelper.doNetworkTest(PcView.this);
+                    break;
+                case MENU_REMOVE:
+                    confirmRemove(computer);
+                    break;
+            }
+        });
+        menu.show(anchor, anchor != heroMore);
+    }
+
+    private void showRename(final ComputerDetails computer) {
+        View content = getLayoutInflater().inflate(R.layout.si_input_field, null, false);
+        TextView label = content.findViewById(R.id.siInputLabel);
+        final EditText input = content.findViewById(R.id.siInput);
+        content.findViewById(R.id.siInputError).setVisibility(View.GONE);
+        label.setText(R.string.si_rename_label);
+        input.setText(SiPc.name(this, computer));
+        input.setSelectAllOnFocus(true);
+        input.setHint(computer.name);
+        final SiDialog d = new SiDialog(this)
+                .title(getString(R.string.si_rename_title, SiPc.name(this, computer)))
+                .body(getString(R.string.si_rename_body))
+                .content(content)
+                .cancelButton(getString(R.string.si_cancel));
+        d.primary(getString(R.string.si_save), dialog -> {
+            String name = input.getText().toString().trim();
+            SiPc.rename(PcView.this, computer.uuid, name.equals(computer.name) ? null : name);
+            dialog.dismiss();
+            pcGridAdapter.sortList();
+            refreshHero();
+        });
+        input.setOnEditorActionListener((v, actionId, event) -> {
+            d.getPrimaryButton().performClick();
+            return true;
+        });
+        d.show();
+        input.requestFocus();
+    }
+
+    private void confirmRemove(final ComputerDetails computer) {
+        if (ActivityManager.isUserAMonkey()) {
+            LimeLog.info("Ignoring delete PC request from monkey");
+            return;
+        }
+        new SiDialog(this)
+                .title(getString(R.string.si_remove_title, SiPc.name(this, computer)))
+                .body(getString(R.string.si_remove_body))
+                .cancelButton(getString(R.string.si_cancel))
+                .destructive(getString(R.string.si_menu_remove), SiDialog.closeThen(() -> {
+                    if (managerBinder == null) {
+                        Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    removeComputer(computer);
+                }))
+                .show();
+    }
+
+    /** Message / error dialog (DESIGN.md): what happened, the server's own words, what to try. */
+    private void showMessage(String title, String body, String details) {
+        SiDialog d = new SiDialog(this).title(title).body(body);
+        if (details != null && !details.isEmpty()) {
+            d.secondary(getString(R.string.si_details), dialog -> {
+                dialog.dismiss();
+                new SiDialog(PcView.this).title(title).body(details)
+                        .primary(getString(R.string.si_ok), null).show();
+            });
+        }
+        d.primary(getString(R.string.si_ok), null).show();
+    }
     // Connect goes straight to the desktop: resume the running session, or start Desktop
     private void doConnect(ComputerDetails computer) {
+        rememberLastUsed(computer);
         if (managerBinder == null) {
             Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
             return;
@@ -611,81 +709,10 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
         Dialog.closeDialogs();
     }
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-        stopComputerUpdates(false);
-
-        // Call superclass
-        super.onCreateContextMenu(menu, v, menuInfo);
-
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-        ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
-
-        // Add a header with PC status details
-        menu.clearHeader();
-        String headerTitle = computer.details.name + " - ";
-        switch (computer.details.state)
-        {
-            case ONLINE:
-                headerTitle += getResources().getString(R.string.pcview_menu_header_online);
-                break;
-            case OFFLINE:
-                menu.setHeaderIcon(R.drawable.ic_pc_offline);
-                headerTitle += getResources().getString(R.string.pcview_menu_header_offline);
-                break;
-            case UNKNOWN:
-                headerTitle += getResources().getString(R.string.pcview_menu_header_unknown);
-                break;
-        }
-
-        menu.setHeaderTitle(headerTitle);
-
-        // Inflate the context menu
-        if (computer.details.state == ComputerDetails.State.OFFLINE ||
-            computer.details.state == ComputerDetails.State.UNKNOWN) {
-            menu.add(Menu.NONE, WOL_ID, 1, getResources().getString(R.string.pcview_menu_send_wol));
-            menu.add(Menu.NONE, GAMESTREAM_EOL_ID, 2, getResources().getString(R.string.pcview_menu_eol));
-        }
-        else if (computer.details.pairState != PairState.PAIRED) {
-            menu.add(Menu.NONE, PAIR_ID_OTP, 1, getResources().getString(R.string.pcview_menu_pair_pc_otp));
-            menu.add(Menu.NONE, PAIR_ID, 2, getResources().getString(R.string.pcview_menu_pair_pc));
-            if (computer.details.nvidiaServer) {
-                menu.add(Menu.NONE, GAMESTREAM_EOL_ID, 3, getResources().getString(R.string.pcview_menu_eol));
-            } else {
-                menu.add(Menu.NONE, OPEN_MANAGEMENT_PAGE_ID, 3, getResources().getString(R.string.pcview_menu_open_management_page));
-            }
-        }
-        else {
-            if (computer.details.runningGameId != 0) {
-                menu.add(Menu.NONE, RESUME_ID, 1, getResources().getString(R.string.applist_menu_resume));
-                menu.add(Menu.NONE, QUIT_ID, 2, getResources().getString(R.string.applist_menu_quit));
-            }
-
-            if (computer.details.nvidiaServer) {
-                menu.add(Menu.NONE, GAMESTREAM_EOL_ID, 3, getResources().getString(R.string.pcview_menu_eol));
-            } else {
-                menu.add(Menu.NONE, OPEN_MANAGEMENT_PAGE_ID, 3, getResources().getString(R.string.pcview_menu_open_management_page));
-            }
-
-            menu.add(Menu.NONE, FULL_APP_LIST_ID, 4, getResources().getString(R.string.pcview_menu_app_list));
-        }
-
-        menu.add(Menu.NONE, TEST_NETWORK_ID, 5, getResources().getString(R.string.pcview_menu_test_network));
-        menu.add(Menu.NONE, DELETE_ID, 6, getResources().getString(R.string.pcview_menu_delete_pc));
-        menu.add(Menu.NONE, VIEW_DETAILS_ID, 7,  getResources().getString(R.string.pcview_menu_details));
-    }
-
-    @Override
-    public void onContextMenuClosed(Menu menu) {
-        // For some reason, this gets called again _after_ onPause() is called on this activity.
-        // startComputerUpdates() manages this and won't actual start polling until the activity
-        // returns to the foreground.
-        startComputerUpdates();
-    }
-
     private void doPair(final ComputerDetails computer, String otp, String passphrase) {
+        final String pcName = SiPc.name(this, computer);
         if (computer.state == ComputerDetails.State.OFFLINE || computer.activeAddress == null) {
-            Toast.makeText(PcView.this, getResources().getString(R.string.pair_pc_offline), Toast.LENGTH_SHORT).show();
+            showMessage(getString(R.string.si_cant_reach_title, pcName), getString(R.string.si_pc_offline, pcName), null);
             return;
         }
         if (managerBinder == null) {
@@ -693,12 +720,37 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
             return;
         }
 
-        Toast.makeText(PcView.this, getResources().getString(R.string.pairing), Toast.LENGTH_SHORT).show();
+        final String pinStr = otp != null ? otp : PairingManager.generatePinString();
+        final boolean[] cancelled = { false };
+
+        // Pair (DESIGN.md): the code in four boxes, a waiting line, and Cancel
+        View content = getLayoutInflater().inflate(R.layout.si_pair_code, null, false);
+        int[] boxes = { R.id.siPinDigit1, R.id.siPinDigit2, R.id.siPinDigit3, R.id.siPinDigit4 };
+        for (int i = 0; i < boxes.length; i++) {
+            ((TextView) content.findViewById(boxes[i])).setText(i < pinStr.length() ? String.valueOf(pinStr.charAt(i)) : "");
+        }
+        ((TextView) content.findViewById(R.id.siPairWaiting)).setText(getString(R.string.si_pair_waiting, pcName));
+        if (pairDialog != null) {
+            pairDialog.dismiss();
+        }
+        pairDialog = new SiDialog(this)
+                .title(getString(R.string.si_pair_title, pcName))
+                .body(getString(passphrase == null ? R.string.si_pair_body : R.string.si_pair_body_otp, pcName))
+                .content(content)
+                .onCancel(() -> {
+                    cancelled[0] = true;
+                    startComputerUpdates();
+                })
+                .cancelButton(getString(R.string.si_cancel));
+        pairDialog.show();
+        final SiDialog shownDialog = pairDialog;
+
         new Thread(new Runnable() {
             @Override
             public void run() {
                 NvHTTP httpConn;
                 String message;
+                String details = null;
                 boolean success = false;
                 try {
                     // Stop updates and wait while pairing
@@ -708,46 +760,28 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
                             computer.httpsPort, managerBinder.getUniqueId(), computer.serverCert,
                             PlatformBinding.getCryptoProvider(PcView.this));
                     if (httpConn.getPairState() == PairState.PAIRED) {
-                        // Don't display any toast, but open the app list
                         message = null;
                         success = true;
                     }
                     else {
-                        String pinStr = otp;
-                        if (pinStr == null) {
-                            pinStr = PairingManager.generatePinString();
-                        }
-
-                        // Spin the dialog off in a thread because it blocks
-                        if (passphrase == null) {
-                            Dialog.displayDialog(PcView.this, getResources().getString(R.string.pair_pairing_title),
-                                    getResources().getString(R.string.pair_pairing_msg)+" "+pinStr+"\n\n"+
-                                            getResources().getString(R.string.pair_pairing_help), false);
-                        } else {
-                            Dialog.displayDialog(PcView.this, getResources().getString(R.string.pair_pairing_title),
-                                    getResources().getString(R.string.pair_otp_pairing_msg)+"\n\n"+
-                                            getResources().getString(R.string.pair_otp_pairing_help), false);
-                        }
-
                         PairingManager pm = httpConn.getPairingManager();
 
                         PairState pairState = pm.pair(httpConn.getServerInfo(true), pinStr, passphrase);
                         if (pairState == PairState.PIN_WRONG) {
-                            message = getResources().getString(R.string.pair_incorrect_pin);
+                            message = getString(R.string.si_pair_wrong_code);
                         }
                         else if (pairState == PairState.FAILED) {
                             if (computer.runningGameId != 0) {
-                                message = getResources().getString(R.string.pair_pc_ingame);
+                                message = getString(R.string.si_pair_in_use, pcName);
                             }
                             else {
-                                message = getResources().getString(R.string.pair_fail);
+                                message = getString(R.string.si_pair_failed_body, pcName);
                             }
                         }
                         else if (pairState == PairState.ALREADY_IN_PROGRESS) {
-                            message = getResources().getString(R.string.pair_already_in_progress);
+                            message = getString(R.string.si_pair_busy, pcName);
                         }
                         else if (pairState == PairState.PAIRED) {
-                            // Just navigate to the app view without displaying a toast
                             message = null;
                             success = true;
 
@@ -764,29 +798,40 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
                         }
                     }
                 } catch (UnknownHostException e) {
-                    message = getResources().getString(R.string.error_unknown_host);
+                    message = getString(R.string.si_cant_reach_body);
+                    details = e.toString();
+                } catch (HostHttpResponseException e) {
+                    // The server's own words, then what to try
+                    message = e.getErrorMessage() + "\n\n" + getString(R.string.si_pair_failed_body, pcName);
+                    details = e.getMessage();
                 } catch (FileNotFoundException e) {
-                    message = getResources().getString(R.string.error_404);
+                    message = getString(R.string.si_pair_failed_body, pcName);
+                    details = getString(R.string.error_404);
                 } catch (XmlPullParserException | IOException e) {
                     e.printStackTrace();
-                    message = e.getMessage();
+                    message = getString(R.string.si_cant_reach_body);
+                    details = e.getMessage();
                 }
 
-                Dialog.closeDialogs();
-
-                final String toastMessage = message;
-                final boolean toastSuccess = success;
+                final String errorMessage = message;
+                final String errorDetails = details;
+                final boolean pairSuccess = success;
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (toastMessage != null) {
-                            Toast.makeText(PcView.this, toastMessage, Toast.LENGTH_LONG).show();
+                        shownDialog.dismiss();
+                        if (cancelled[0]) {
+                            return;
                         }
 
-                        if (toastSuccess) {
-                            // Pairing only earns trust; connecting is a separate step from the big card
+                        if (errorMessage != null) {
+                            showMessage(getString(R.string.si_pair_failed_title, pcName), errorMessage, errorDetails);
+                        }
+
+                        if (pairSuccess) {
+                            // Pairing only earns trust; the hero button becomes Connect
                             pickedUuid = computer.uuid;
-                            Toast.makeText(PcView.this, getString(R.string.si_paired, computer.name), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(PcView.this, getString(R.string.si_paired, pcName), Toast.LENGTH_SHORT).show();
                         }
 
                         // Start polling again if we're still in the foreground
@@ -795,51 +840,6 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
                 });
             }
         }).start();
-    }
-
-    private void doOTPPair(final ComputerDetails computer) {
-        Context context = PcView.this;
-
-        LinearLayout layout = new LinearLayout(context);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50, 40, 50, 40);
-
-        final EditText otpInput = new EditText(context);
-        otpInput.setHint("PIN");
-        otpInput.setInputType(InputType.TYPE_CLASS_NUMBER);
-        otpInput.setFilters(new InputFilter[] { new InputFilter.LengthFilter(4) });
-
-        final EditText passphraseInput = new EditText(context);
-        passphraseInput.setHint(getString(R.string.pair_passphrase_hint));
-        passphraseInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-
-        layout.addView(otpInput);
-        layout.addView(passphraseInput);
-
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-        dialogBuilder.setTitle(R.string.pcview_menu_pair_pc_otp);
-        dialogBuilder.setView(layout);
-
-        dialogBuilder.setPositiveButton(getString(R.string.proceed), null);
-
-        dialogBuilder.setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.dismiss());
-        AlertDialog dialog = dialogBuilder.create();
-        dialog.show();
-
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String pin = otpInput.getText().toString();
-            String passphrase = passphraseInput.getText().toString();
-            if (pin.length() != 4) {
-                Toast.makeText(context, getString(R.string.pair_pin_length_msg), Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (passphrase.length() < 4 ) {
-                Toast.makeText(context, getString(R.string.pair_passphrase_length_msg), Toast.LENGTH_SHORT).show();
-                return;
-            }
-            doPair(computer, pin, passphrase);
-            dialog.dismiss(); // Manually dismiss the dialog if the input is valid
-        });
     }
 
     private void doWakeOnLan(final ComputerDetails computer) {
@@ -945,98 +945,6 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
         startActivity(i);
     }
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        final ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(info.position);
-        switch (item.getItemId()) {
-            case PAIR_ID:
-                doPair(computer.details, null, null);
-                return true;
-
-            case PAIR_ID_OTP:
-                doOTPPair(computer.details);
-                return true;
-
-            case UNPAIR_ID:
-                doUnpair(computer.details);
-                return true;
-
-            case WOL_ID:
-                doWakeOnLan(computer.details);
-                return true;
-
-            case DELETE_ID:
-                if (ActivityManager.isUserAMonkey()) {
-                    LimeLog.info("Ignoring delete PC request from monkey");
-                    return true;
-                }
-                UiHelper.displayDeletePcConfirmationDialog(this, computer.details, new Runnable() {
-                    @Override
-                    public void run() {
-                        if (managerBinder == null) {
-                            Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
-                            return;
-                        }
-                        removeComputer(computer.details);
-                    }
-                }, null);
-                return true;
-
-            case FULL_APP_LIST_ID:
-                doAppList(computer.details, false, true);
-                return true;
-
-            case RESUME_ID:
-                if (managerBinder == null) {
-                    Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
-                    return true;
-                }
-
-                ServerHelper.doStart(this, new NvApp("app", null, computer.details.runningGameId, false), computer.details, managerBinder, false);
-                return true;
-
-            case QUIT_ID:
-                if (managerBinder == null) {
-                    Toast.makeText(PcView.this, getResources().getString(R.string.error_manager_not_running), Toast.LENGTH_LONG).show();
-                    return true;
-                }
-
-                // Display a confirmation dialog first
-                UiHelper.displayQuitConfirmationDialog(this, new Runnable() {
-                    @Override
-                    public void run() {
-                        ServerHelper.doQuit(PcView.this, computer.details,
-                                new NvApp("app", null, 0, false), managerBinder, null);
-                    }
-                }, null);
-                return true;
-
-            case VIEW_DETAILS_ID:
-                Dialog.displayDialog(PcView.this, getResources().getString(R.string.title_details), computer.details.toString(), false);
-                return true;
-
-            case TEST_NETWORK_ID:
-                ServerHelper.doNetworkTest(PcView.this);
-                return true;
-
-            case GAMESTREAM_EOL_ID:
-                HelpLauncher.launchGameStreamEolFaq(PcView.this);
-                return true;
-
-            case OPEN_MANAGEMENT_PAGE_ID:
-                String managementUrl = computer.guessManagementUrl();
-                if (managementUrl == null) {
-                    Toast.makeText(PcView.this, getResources().getString(R.string.pcview_error_no_management_url), Toast.LENGTH_LONG).show();
-                } else {
-                    HelpLauncher.launchUrl(PcView.this, managementUrl);
-                }
-
-            default:
-                return super.onContextItemSelected(item);
-        }
-    }
-
     private void removeComputer(ComputerDetails details) {
         managerBinder.removeComputer(details);
 
@@ -1057,13 +965,11 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
                         getResources().getString(R.string.scut_deleted_pc));
 
                 pcGridAdapter.removeComputer(computer);
-                refreshHero();
-
-                if (pcGridAdapter.getCount() == 0) {
-                    // Show the "Discovery in progress" view
-                    noPcFoundLayout.setVisibility(View.VISIBLE);
+                SiPc.forget(this, details.uuid);
+                if (details.uuid.equals(pickedUuid)) {
+                    pickedUuid = null;
                 }
-
+                refreshHero();
                 break;
             }
         }
@@ -1089,9 +995,6 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
         else {
             // Add a new entry
             pcGridAdapter.addComputer(new ComputerObject(details));
-
-            // Remove the "Discovery in progress" view
-            noPcFoundLayout.setVisibility(View.INVISIBLE);
         }
 
         if (details.uuid.equals(connectWhenAwakeUuid) && details.state == ComputerDetails.State.ONLINE) {
@@ -1103,29 +1006,6 @@ public class PcView extends AppCompatActivity implements AdapterFragmentCallback
 
         // Notify the view that the data has changed
         refreshHero();
-    }
-
-    @Override
-    public int getAdapterFragmentLayoutId() {
-        return R.layout.pc_grid_view;
-    }
-
-    @Override
-    public void receiveAbsListView(AbsListView listView) {
-        pcGridView = (GridView) listView;
-        listView.setAdapter(pcGridAdapter);
-        sizePcRow();
-        listView.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
-                                    long id) {
-                // A small card brings that PC into the big card; long-press for the full menu
-                ComputerObject computer = (ComputerObject) pcGridAdapter.getItem(pos);
-                pickedUuid = computer.details.uuid;
-                refreshHero();
-            }
-        });
-        registerForContextMenu(listView);
     }
 
     public static class ComputerObject {

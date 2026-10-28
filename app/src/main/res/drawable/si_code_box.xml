@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pairing code digit box: raised, radius sm -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="@color/si_raised" /><corners android:radius="@dimen/si_radius_sm" /></shape>

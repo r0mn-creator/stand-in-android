@@ -23,6 +23,17 @@
         <item name="android:navigationBarColor">@color/si_ground</item>
         <item name="android:colorBackground">@color/si_ground</item>
         <item name="android:windowBackground">@color/si_ground</item>
+        <!-- Inter everywhere, never the platform font -->
+        <item name="android:fontFamily">@font/inter_regular</item>
+        <item name="fontFamily">@font/inter_regular</item>
+        <item name="android:textColorPrimary">@color/si_text</item>
+        <item name="android:textColorSecondary">@color/si_muted</item>
+        <item name="colorPrimary">@color/si_accent</item>
+        <item name="colorAccent">@color/si_accent</item>
+        <item name="colorControlActivated">@color/si_accent</item>
+        <item name="android:colorAccent">@color/si_accent</item>
+        <item name="android:colorControlActivated">@color/si_accent</item>
+        <item name="android:textColorHighlight">@color/si_accent_soft</item>
         <item name="android:alertDialogTheme">@style/SiAlertDialog</item>
         <item name="alertDialogTheme">@style/SiAppCompatAlertDialog</item>
         <item name="materialAlertDialogTheme">@style/SiAppCompatAlertDialog</item>

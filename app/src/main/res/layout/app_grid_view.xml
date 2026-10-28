@@ -11,7 +11,7 @@
     android:paddingBottom="24dp"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:listSelector="@drawable/si_app_selector"
+    android:listSelector="@drawable/si_focus_ring_md"
     android:drawSelectorOnTop="true"
     android:scrollbars="none"
     android:clipToPadding="false"

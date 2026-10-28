@@ -1,208 +1,214 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Stand-In home: one big card for the PC you most likely want, the rest in a row below -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Home (DESIGN.md "Home"): header, "Your PCs", hero card for the PC you most likely want,
+     then one row of tiles with the add tile always last and always visible. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="#12161C"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="24dp"
-    android:paddingRight="24dp"
-    android:paddingTop="12dp"
-    android:paddingBottom="12dp"
+    android:background="@color/si_ground"
+    android:orientation="vertical"
     tools:context=".PcView">
 
-    <LinearLayout
-        android:id="@+id/siHeader"
+    <include layout="@layout/si_header_home" />
+
+    <ScrollView
+        android:id="@+id/homeScroll"
         android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:layout_alignParentTop="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <View
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:background="@drawable/si_logo" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:text="Stand-In"
-            android:textColor="#E6EAF0"
-            android:textSize="17sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/versionTag"
-            android:layout_width="wrap_content"
-            android:layout_height="24dp"
-            android:layout_marginStart="12dp"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:gravity="center"
-            android:background="@drawable/version_tag_background"
-            android:text="@string/release_tag"
-            android:textColor="#98A2B3"
-            android:textSize="12sp" />
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-        <ImageButton
-            android:id="@+id/settingsButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="@drawable/si_icon_button"
-            android:contentDescription="Settings"
-            android:focusable="true"
-            android:src="@drawable/ic_si_gear" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/siYourPcs"
-        android:layout_width="720dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/siHeader"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="4dp"
-        android:text="@string/si_your_pcs"
-        android:textColor="#98A2B3"
-        android:textSize="13sp" />
-
-    <LinearLayout
-        android:id="@+id/heroCard"
-        android:layout_width="720dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/siYourPcs"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/si_card"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:paddingTop="20dp"
-        android:paddingBottom="20dp">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        android:overScrollMode="never">
 
         <FrameLayout
-            android:layout_width="48dp"
-            android:layout_height="48dp">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="@dimen/si_size_gutter"
+            android:paddingEnd="@dimen/si_size_gutter"
+            android:paddingBottom="@dimen/si_space_lg">
 
-            <ImageView
-                android:id="@+id/heroIcon"
+            <com.limelight.ui.si.SiMaxWidthLayout
+                android:id="@+id/siColumn"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_si_tower" />
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="vertical"
+                android:maxWidth="@dimen/si_size_content_width">
 
-            <ProgressBar
-                android:id="@+id/heroSpinner"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:indeterminate="true"
-                android:indeterminateTint="#2DD4BF"
-                android:visibility="gone" />
+                <TextView
+                    style="@style/SiSectionLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/si_space_xs"
+                    android:text="@string/si_your_pcs" />
+
+                <!-- Hero card -->
+                <FrameLayout
+                    android:id="@+id/heroCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/si_card">
+
+                    <LinearLayout
+                        android:id="@+id/heroContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:padding="@dimen/si_space_lg">
+
+                        <FrameLayout
+                            android:layout_width="48dp"
+                            android:layout_height="48dp">
+
+                            <ImageView
+                                android:id="@+id/heroIcon"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:importantForAccessibility="no"
+                                android:src="@drawable/ic_si_tower" />
+
+                            <com.limelight.ui.si.SiSpinner
+                                android:id="@+id/heroSpinner"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:visibility="gone" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:id="@+id/heroName"
+                            style="@style/SiText.Display"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/si_space_xs"
+                            android:layout_marginStart="56dp"
+                            android:layout_marginEnd="56dp"
+                            android:ellipsize="end"
+                            android:singleLine="true" />
+
+                        <TextView
+                            android:id="@+id/heroStatus"
+                            style="@style/SiText.Body"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:gravity="center"
+                            android:textColor="@color/si_muted" />
+
+                        <!-- Keeps the card the same height when a state has no button -->
+                        <FrameLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="@dimen/si_size_button_large"
+                            android:layout_marginTop="@dimen/si_space_md">
+
+                            <TextView
+                                android:id="@+id/heroButton"
+                                style="@style/SiButton.Primary"
+                                android:focusedByDefault="true"
+                                android:layout_width="@dimen/si_size_hero_button_width"
+                                android:layout_height="@dimen/si_size_button_large" />
+                        </FrameLayout>
+                    </LinearLayout>
+
+                    <!-- Empty state: no PCs yet -->
+                    <LinearLayout
+                        android:id="@+id/heroEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:padding="@dimen/si_space_lg"
+                        android:visibility="gone">
+
+                        <com.limelight.ui.si.SiSpinner
+                            android:layout_width="48dp"
+                            android:layout_height="48dp" />
+
+                        <TextView
+                            style="@style/SiText.Title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/si_space_md"
+                            android:text="@string/si_looking" />
+
+                        <TextView
+                            style="@style/SiText.Body"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/si_space_xs"
+                            android:gravity="center"
+                            android:text="@string/si_looking_detail"
+                            android:textColor="@color/si_muted" />
+
+                        <TextView
+                            android:id="@+id/heroAddManually"
+                            style="@style/SiButton.Text"
+                            android:layout_width="wrap_content"
+                            android:layout_marginTop="@dimen/si_space_md"
+                            android:text="@string/si_add_manually" />
+                    </LinearLayout>
+
+                    <ImageButton
+                        android:id="@+id/heroMore"
+                        style="@style/SiIconButton"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="@dimen/si_space_sm"
+                        android:contentDescription="@string/si_more"
+                        android:src="@drawable/ic_si_more" />
+                </FrameLayout>
+
+                <!-- Tiles: one row with 12 gaps, scrolling sideways; the add tile stays put -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/si_space_sm"
+                    android:orientation="horizontal">
+
+                    <HorizontalScrollView
+                        android:id="@+id/pcRowScroll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:clipToPadding="false"
+                        android:overScrollMode="never"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/pcRow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="@dimen/si_size_tile_height"
+                            android:orientation="horizontal" />
+                    </HorizontalScrollView>
+
+                    <LinearLayout
+                        android:id="@+id/manuallyAddPc"
+                        android:layout_width="@dimen/si_size_tile_width"
+                        android:layout_height="@dimen/si_size_tile_height"
+                        android:layout_marginStart="@dimen/si_space_sm"
+                        android:background="@drawable/si_tile_add"
+                        android:clickable="true"
+                        android:contentDescription="@string/si_add_pc"
+                        android:defaultFocusHighlightEnabled="false"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:layout_width="@dimen/si_size_icon"
+                            android:layout_height="@dimen/si_size_icon"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_si_plus" />
+
+                        <TextView
+                            style="@style/SiText.Caption"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="@string/si_add_pc"
+                            android:textColor="@color/si_muted" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.limelight.ui.si.SiMaxWidthLayout>
         </FrameLayout>
-
-        <TextView
-            android:id="@+id/heroName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="#E6EAF0"
-            android:textSize="26sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/heroStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textColor="#98A2B3"
-            android:textSize="14sp" />
-
-        <!-- A TextView, not a Button: the Material theme would tint a Button purple -->
-        <TextView
-            android:id="@+id/heroButton"
-            android:layout_width="220dp"
-            android:layout_height="46dp"
-            android:layout_marginTop="14dp"
-            android:background="@drawable/si_button_primary"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:textColor="#04201C"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/pcRow"
-        android:layout_width="720dp"
-        android:layout_height="104dp"
-        android:layout_below="@id/heroCard"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="12dp"
-        android:orientation="horizontal">
-
-        <!-- The PC cards scroll sideways once there are more than fit -->
-        <HorizontalScrollView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:scrollbars="none"
-            android:overScrollMode="never">
-
-            <FrameLayout
-                android:id="@+id/pcFragmentContainer"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent" />
-        </HorizontalScrollView>
-
-        <LinearLayout
-            android:id="@+id/manuallyAddPc"
-            android:layout_width="112dp"
-            android:layout_height="96dp"
-            android:layout_marginStart="12dp"
-            android:background="@drawable/si_add_card_states"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="+"
-                android:textColor="#E6EAF0"
-                android:textSize="24sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/si_add_pc"
-                android:textColor="#98A2B3"
-                android:textSize="13sp" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Kept for the code that toggles it; the big card shows the searching state instead -->
-    <RelativeLayout
-        android:id="@+id/no_pc_found_layout"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
-
-    <ImageButton
-        android:id="@+id/helpButton"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone" />
-
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/profilesButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
-
-</RelativeLayout>
+    </ScrollView>
+</LinearLayout>

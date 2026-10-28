@@ -1,22 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Primary button: accent capsule. Focus keeps the fill and adds the 2dp ring outside a 2dp gap so it stays visible on teal -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_focused="true">
-        <shape android:shape="rectangle">
-            <solid android:color="#2DD4BF" />
-            <stroke android:width="3dp" android:color="#E6EAF0" />
-            <corners android:radius="24dp" />
-        </shape>
-    </item>
-    <item android:state_pressed="true">
-        <shape android:shape="rectangle">
-            <solid android:color="#5EEAD4" />
-            <corners android:radius="24dp" />
-        </shape>
-    </item>
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="#2DD4BF" />
-            <corners android:radius="24dp" />
-        </shape>
-    </item>
+    <item android:state_enabled="false"><shape android:shape="rectangle"><solid android:color="@color/si_raised" /><corners android:radius="999dp" /></shape></item>
+    <item android:state_focused="true"><layer-list><item><shape android:shape="rectangle"><solid android:color="@color/si_accent_hover" /><corners android:radius="999dp" /></shape></item><item android:left="2dp" android:top="2dp" android:right="2dp" android:bottom="2dp"><shape android:shape="rectangle"><solid android:color="@color/si_surface" /><corners android:radius="999dp" /></shape></item><item android:left="4dp" android:top="4dp" android:right="4dp" android:bottom="4dp"><shape android:shape="rectangle"><solid android:color="@color/si_accent" /><corners android:radius="999dp" /></shape></item></layer-list></item>
+    <item android:state_pressed="true"><shape android:shape="rectangle"><solid android:color="@color/si_accent_hover" /><corners android:radius="999dp" /></shape></item>
+    <item android:state_hovered="true"><shape android:shape="rectangle"><solid android:color="@color/si_accent_hover" /><corners android:radius="999dp" /></shape></item>
+    <item><shape android:shape="rectangle"><solid android:color="@color/si_accent" /><corners android:radius="999dp" /></shape></item>
 </selector>

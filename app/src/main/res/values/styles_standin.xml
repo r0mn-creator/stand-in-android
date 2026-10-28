@@ -1,15 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Stand-In components (stand-in-brand/design/DESIGN.md). Colors, sizes and type come from
+     si_tokens.xml / si_type.xml, which are generated; never hard-code values here. -->
 <resources>
-    <!-- Every pop-up in the app: rounded Midnight Slate panel, teal capsule buttons -->
+
+    <!-- Icon button: 44x44, radius sm, surface + border, icon 22 -->
+    <style name="SiIconButton">
+        <item name="android:layout_width">@dimen/si_size_icon_button</item>
+        <item name="android:layout_height">@dimen/si_size_icon_button</item>
+        <item name="android:background">@drawable/si_icon_button</item>
+        <item name="android:padding">11dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:defaultFocusHighlightEnabled">false</item>
+        <item name="android:tint">@color/si_text</item>
+    </style>
+
+    <!-- Buttons are TextViews: the Material theme would tint a Button purple -->
+    <style name="SiButton">
+        <item name="android:layout_height">@dimen/si_size_button</item>
+        <item name="android:minWidth">120dp</item>
+        <item name="android:paddingStart">@dimen/si_space_lg</item>
+        <item name="android:paddingEnd">@dimen/si_space_lg</item>
+        <item name="android:gravity">center</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textSize">@dimen/si_text_button</item>
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:defaultFocusHighlightEnabled">false</item>
+    </style>
+
+    <style name="SiButton.Primary">
+        <item name="android:background">@drawable/si_button_primary</item>
+        <item name="android:textColor">@color/si_on_accent_button</item>
+    </style>
+
+    <style name="SiButton.Secondary">
+        <item name="android:background">@drawable/si_button_secondary</item>
+        <item name="android:textColor">@color/si_text_enabled</item>
+    </style>
+
+    <style name="SiButton.Destructive">
+        <item name="android:background">@drawable/si_button_secondary</item>
+        <item name="android:textColor">@color/si_danger</item>
+    </style>
+
+    <!-- Text button: no fill, accent text; low-stakes inline links only -->
+    <style name="SiButton.Text">
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">@dimen/si_space_sm</item>
+        <item name="android:paddingEnd">@dimen/si_space_sm</item>
+        <item name="android:background">@drawable/si_menu_row</item>
+        <item name="android:textColor">@color/si_accent</item>
+    </style>
+
+    <!-- Section label: label style, muted, 24 above / 8 below -->
+    <style name="SiSectionLabel" parent="SiText.Label">
+        <item name="android:textColor">@color/si_muted</item>
+        <item name="android:layout_marginTop">@dimen/si_space_lg</item>
+        <item name="android:layout_marginBottom">@dimen/si_space_xs</item>
+    </style>
+
+    <!-- One digit of the pairing code: 56x64 raised box, radius sm, 32 bold -->
+    <style name="SiPinDigit" parent="SiText.Code">
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">64dp</item>
+        <item name="android:background">@drawable/si_code_box</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="SiSwitch">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:thumb">@drawable/si_switch_thumb</item>
+        <item name="track">@drawable/si_switch_track</item>
+        <item name="android:background">@null</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="switchMinWidth">44dp</item>
+        <item name="showText">false</item>
+        <item name="android:focusable">false</item>
+        <item name="android:clickable">false</item>
+    </style>
+
+    <!-- Our own dialogs (SiDialog): an undecorated floating window; the panel draws itself -->
+    <style name="SiDialogWindow" parent="android:Theme.Material.Dialog.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.6</item>
+        <item name="android:windowAnimationStyle">@style/SiDialogAnimation</item>
+        <item name="android:fontFamily">@font/inter_regular</item>
+        <item name="android:colorAccent">@color/si_accent</item>
+        <item name="android:colorControlActivated">@color/si_accent</item>
+        <item name="android:textCursorDrawable">@null</item>
+    </style>
+
+    <style name="SiDialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/si_dialog_in</item>
+        <item name="android:windowExitAnimation">@anim/si_dialog_out</item>
+    </style>
+
+    <!-- Full-window screens drawn as a window over the current activity (Connecting) -->
+    <style name="SiFullWindow" parent="android:Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@color/si_ground</item>
+        <item name="android:windowAnimationStyle">@style/SiDialogAnimation</item>
+        <item name="android:fontFamily">@font/inter_regular</item>
+    </style>
+
+    <!-- An activity that shows only a Stand-In dialog over the screen behind it (Add a PC) -->
+    <style name="SiDialogActivity" parent="AppTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@color/si_scrim</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- Stock AlertDialogs that are still built elsewhere (in-stream menus, legacy screens) -->
     <style name="SiAlertDialog" parent="android:Theme.Material.Dialog.Alert">
-        <item name="android:windowBackground">@drawable/si_dialog_background</item>
+        <item name="android:windowBackground">@drawable/si_dialog_window</item>
         <item name="android:colorBackground">@color/si_surface</item>
         <item name="android:textColorPrimary">@color/si_text</item>
         <item name="android:textColorSecondary">@color/si_muted</item>
         <item name="android:textColorAlertDialogListItem">@color/si_text</item>
         <item name="android:colorAccent">@color/si_accent</item>
         <item name="android:colorControlActivated">@color/si_accent</item>
-        <item name="android:colorControlHighlight">#332DD4BF</item>
+        <item name="android:colorControlHighlight">@color/si_accent_soft</item>
+        <item name="android:fontFamily">@font/inter_regular</item>
         <item name="android:windowTitleStyle">@style/SiDialogTitle</item>
         <item name="android:buttonBarButtonStyle">@style/SiDialogButton</item>
         <item name="android:buttonBarPositiveButtonStyle">@style/SiDialogButton</item>
@@ -17,50 +136,47 @@
         <item name="android:buttonBarNeutralButtonStyle">@style/SiDialogButton</item>
         <item name="android:windowMinWidthMajor">40%</item>
         <item name="android:windowMinWidthMinor">80%</item>
+        <item name="android:backgroundDimAmount">0.6</item>
     </style>
 
-    <style name="SiDialogTitle" parent="android:TextAppearance.Material.DialogWindowTitle">
-        <item name="android:textColor">@color/si_text</item>
-        <item name="android:textSize">22sp</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-    </style>
+    <style name="SiDialogTitle" parent="SiText.Title" />
 
-    <!-- Dialog buttons are inflated as MaterialButtons, so they take Material's color attributes -->
+    <!-- Dialog buttons are inflated as MaterialButtons, so they take Material's attributes -->
     <style name="SiDialogButton" parent="Widget.Material3.Button.TextButton.Dialog">
-        <item name="android:textColor">@color/si_accent</item>
+        <item name="android:textColor">@color/si_text</item>
         <item name="android:textAllCaps">false</item>
-        <item name="android:textSize">16sp</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:minHeight">44dp</item>
-        <item name="android:paddingStart">20dp</item>
-        <item name="android:paddingEnd">20dp</item>
-        <item name="backgroundTint">@color/si_dialog_button_fill</item>
+        <item name="android:textSize">@dimen/si_text_button</item>
+        <item name="android:fontFamily">@font/inter_semibold</item>
+        <item name="android:minHeight">@dimen/si_size_button</item>
+        <item name="android:paddingStart">@dimen/si_space_lg</item>
+        <item name="android:paddingEnd">@dimen/si_space_lg</item>
+        <item name="backgroundTint">@color/si_raised</item>
         <item name="strokeColor">@color/si_dialog_button_stroke</item>
-        <item name="strokeWidth">2dp</item>
-        <item name="rippleColor">#332DD4BF</item>
+        <item name="strokeWidth">@dimen/si_size_focus_ring</item>
+        <item name="rippleColor">@color/si_accent_soft</item>
         <item name="cornerRadius">22dp</item>
         <item name="android:defaultFocusHighlightEnabled">false</item>
     </style>
 
-    <!-- AndroidX and Material builders read their own attributes -->
     <style name="SiAppCompatAlertDialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
-        <item name="android:windowBackground">@drawable/si_dialog_background</item>
+        <item name="android:windowBackground">@drawable/si_dialog_window</item>
         <item name="colorSurface">@color/si_surface</item>
         <item name="colorPrimary">@color/si_accent</item>
         <item name="colorAccent">@color/si_accent</item>
         <item name="android:textColorPrimary">@color/si_text</item>
         <item name="android:textColorSecondary">@color/si_muted</item>
+        <item name="android:fontFamily">@font/inter_regular</item>
         <item name="buttonBarButtonStyle">@style/SiDialogButton</item>
+        <item name="buttonBarPositiveButtonStyle">@style/SiDialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/SiDialogButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/SiDialogButton</item>
     </style>
 
-    <!-- Long-press menus on PCs and apps -->
+    <!-- Stock popup menus that remain (in-stream); our own PC menu is SiMenu -->
     <style name="SiPopupMenu" parent="Widget.Material3.PopupMenu.ContextMenu">
         <item name="android:popupBackground">@drawable/si_popup_background</item>
         <item name="android:popupElevation">12dp</item>
     </style>
 
-    <style name="SiPopupMenuText" parent="TextAppearance.Material3.BodyLarge">
-        <item name="android:textColor">@color/si_text</item>
-        <item name="android:textSize">16sp</item>
-    </style>
+    <style name="SiPopupMenuText" parent="SiText.Body" />
 </resources>

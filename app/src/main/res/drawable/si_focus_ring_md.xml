@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Focus ring for radius-md shapes (tiles, app cards) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><solid android:color="#00000000" /><stroke android:width="@dimen/si_size_focus_ring" android:color="@color/si_accent_hover" /><corners android:radius="@dimen/si_radius_md" /></shape>

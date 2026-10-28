@@ -176,10 +176,11 @@
             android:name=".preferences.AddComputerManually"
             android:exported="true"
             android:resizeableActivity="true"
-            android:windowSoftInputMode="stateVisible"
+            android:windowSoftInputMode="stateVisible|adjustResize"
             android:enableOnBackInvokedCallback="true"
             android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
-            android:label="Add Computer Manually">
+            android:theme="@style/SiDialogActivity"
+            android:label="@string/si_add_title">
             <meta-data android:name="WindowManagerPreference:FreeformWindowSize" android:value="system-default" />
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
 
@@ -234,6 +235,12 @@
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
         </activity>
 
+
+        <activity
+            android:name=".DevicesActivity"
+            android:resizeableActivity="true"
+            android:enableOnBackInvokedCallback="true"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" />
 
         <activity android:name=".DebugInfoActivity"
             android:launchMode="singleTask"/>

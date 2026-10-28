@@ -193,6 +193,8 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
     private boolean attemptedConnection = false;
     private int suppressPipRefCount = 0;
     private String pcName;
+    // The server's own words for why connecting failed, shown in the error dialog
+    private volatile String connectServerMessage;
     private String appName;
     private NvApp app;
     private float desiredRefreshRate;
@@ -380,8 +382,7 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
         clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
 
         // Start the spinner
-        spinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.conn_establishing_title),
-                getResources().getString(R.string.conn_establishing_msg), true);
+        spinner = SpinnerDialog.displayConnecting(this, getIntent().getStringExtra(EXTRA_PC_NAME));
 
 
         Display currentDisplay = null;
@@ -3512,6 +3513,7 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                         Toast.makeText(Game.this, getResources().getText(R.string.video_decoder_init_failed), Toast.LENGTH_LONG).show();
                     }
 
+                    // Technical text goes behind "Details"; the dialog itself says what happened in plain words
                     String dialogText = getResources().getString(R.string.conn_error_msg) + " " + stage +" (error "+errorCode+")";
 
                     switch (errorCode) {
@@ -3537,7 +3539,23 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                         dialogText += "\n\n" + getResources().getString(R.string.nettest_text_blocked);
                     }
 
-                    Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_error_title), dialogText, true);
+                    String pc = getIntent().getStringExtra(EXTRA_PC_NAME);
+                    boolean named = pc != null && !pc.isEmpty();
+                    String title = named ? getString(R.string.si_connect_failed_title, pc)
+                            : getString(R.string.si_connect_failed_title_generic);
+                    String body;
+                    if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0) {
+                        body = getString(R.string.si_connect_blocked);
+                    }
+                    else {
+                        body = named ? getString(R.string.si_connect_failed_try, pc)
+                                : getString(R.string.si_connect_failed_try_generic);
+                    }
+                    if (connectServerMessage != null) {
+                        // The server's own message first
+                        body = connectServerMessage + "\n\n" + body;
+                    }
+                    Dialog.displayDialog(Game.this, title, body, dialogText, true);
                     finishSecondScreen();
                 }
             }
@@ -3739,6 +3757,15 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
 
     @Override
     public void displayMessage(final String message) {
+        // While connecting, a message is the server's explanation of a failure: keep it for the
+        // error dialog instead of flashing it in a toast
+        if (spinner != null && message != null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern
+                    .compile("^Host PC returned error: (.*) \\(Error code: -?\\d+\\)$", java.util.regex.Pattern.DOTALL)
+                    .matcher(message);
+            connectServerMessage = m.matches() ? m.group(1) : message;
+            return;
+        }
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

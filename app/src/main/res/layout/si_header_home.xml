@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Header (height 56, gutter 24): logo 28 + "Stand-In" + version pill; Devices and Settings on the right -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/siHeader"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/si_size_header_height"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/si_size_gutter"
+    android:paddingEnd="@dimen/si_size_gutter">
+
+    <ImageView
+        android:layout_width="@dimen/si_size_logo"
+        android:layout_height="@dimen/si_size_logo"
+        android:importantForAccessibility="no"
+        android:src="@drawable/si_app_icon" />
+
+    <TextView
+        style="@style/SiText.Headline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/si_space_sm"
+        android:text="@string/si_product_name" />
+
+    <TextView
+        android:id="@+id/versionTag"
+        style="@style/SiText.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="24dp"
+        android:layout_marginStart="@dimen/si_space_sm"
+        android:background="@drawable/si_version_pill"
+        android:gravity="center"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:text="@string/release_tag"
+        android:textColor="@color/si_muted" />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1" />
+
+    <ImageButton
+        android:id="@+id/devicesButton"
+        style="@style/SiIconButton"
+        android:contentDescription="@string/si_devices"
+        android:src="@drawable/ic_si_usb" />
+
+    <ImageButton
+        android:id="@+id/settingsButton"
+        style="@style/SiIconButton"
+        android:layout_marginStart="@dimen/si_space_xs"
+        android:contentDescription="@string/si_settings"
+        android:src="@drawable/ic_si_gear" />
+</LinearLayout>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Popup menu row: 44 high, radius sm, padding 12, optional 18 icon, body text, check for the chosen value -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/si_size_button"
+    android:background="@drawable/si_menu_row"
+    android:clickable="true"
+    android:focusable="true"
+    android:defaultFocusHighlightEnabled="false"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/si_space_sm"
+    android:paddingEnd="@dimen/si_space_sm">
+
+    <ImageView
+        android:id="@+id/siRowIcon"
+        android:layout_width="@dimen/si_size_icon_small"
+        android:layout_height="@dimen/si_size_icon_small"
+        android:layout_marginEnd="@dimen/si_space_sm" />
+
+    <TextView
+        android:id="@+id/siRowText"
+        style="@style/SiText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:singleLine="true" />
+
+    <ImageView
+        android:id="@+id/siRowCheck"
+        android:layout_width="@dimen/si_size_icon_small"
+        android:layout_height="@dimen/si_size_icon_small"
+        android:layout_marginStart="@dimen/si_space_sm"
+        android:src="@drawable/ic_si_check"
+        android:tint="@color/si_accent" />
+</LinearLayout>

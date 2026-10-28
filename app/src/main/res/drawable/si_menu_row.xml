@@ -1,21 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Popup menu row: radius sm; hover/focus raised (focus also gets the ring) -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_focused="true">
-        <inset android:insetLeft="12dp" android:insetRight="12dp">
-            <shape android:shape="rectangle">
-                <solid android:color="@color/si_raised" />
-                <stroke android:width="2dp" android:color="@color/si_accent_light" />
-                <corners android:radius="14dp" />
-            </shape>
-        </inset>
-    </item>
-    <item android:state_pressed="true">
-        <inset android:insetLeft="12dp" android:insetRight="12dp">
-            <shape android:shape="rectangle">
-                <solid android:color="@color/si_raised" />
-                <corners android:radius="14dp" />
-            </shape>
-        </inset>
-    </item>
-    <item android:drawable="@android:color/transparent" />
+    <item android:state_focused="true"><shape android:shape="rectangle"><solid android:color="@color/si_raised" /><stroke android:width="@dimen/si_size_focus_ring" android:color="@color/si_accent_hover" /><corners android:radius="@dimen/si_radius_sm" /></shape></item>
+    <item android:state_pressed="true"><shape android:shape="rectangle"><solid android:color="@color/si_raised" /><corners android:radius="@dimen/si_radius_sm" /></shape></item>
+    <item android:state_hovered="true"><shape android:shape="rectangle"><solid android:color="@color/si_raised" /><corners android:radius="@dimen/si_radius_sm" /></shape></item>
+    <item><shape android:shape="rectangle"><solid android:color="#00000000" /><corners android:radius="@dimen/si_radius_sm" /></shape></item>
 </selector>

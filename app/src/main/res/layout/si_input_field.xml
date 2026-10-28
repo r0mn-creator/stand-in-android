@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Input (DESIGN.md): label above (label muted), 48 high, raised, 1px borderStrong, radius sm;
+     focus 2px accent; errors under it in danger caption -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/siInputLabel"
+        style="@style/SiText.Label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/si_space_xs"
+        android:textColor="@color/si_muted" />
+
+    <EditText
+        android:id="@+id/siInput"
+        style="@style/SiText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/si_size_input"
+        android:background="@drawable/si_input"
+        android:imeOptions="actionDone|flagNoExtractUi"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:paddingStart="@dimen/si_space_md"
+        android:paddingEnd="@dimen/si_space_md"
+        android:singleLine="true"
+        android:textColorHint="@color/si_subtle"
+        android:textCursorDrawable="@drawable/si_cursor" />
+
+    <TextView
+        android:id="@+id/siInputError"
+        style="@style/SiText.Caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/si_space_xs"
+        android:textColor="@color/si_danger"
+        android:visibility="gone" />
+</LinearLayout>

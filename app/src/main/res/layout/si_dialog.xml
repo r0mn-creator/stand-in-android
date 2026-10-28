@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dialog: panel 440 wide (max 90%), surface, 1px border, radius xl, padding 28.
+     Title, 8, body, 24, content, 24, buttons right-aligned with 12 gap. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/siDialogPanel"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/si_dialog_background"
+    android:orientation="vertical"
+    android:padding="28dp">
+
+    <TextView
+        android:id="@+id/siDialogTitle"
+        style="@style/SiText.Title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <ScrollView
+        android:id="@+id/siDialogBodyScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/si_space_xs"
+        android:fadeScrollbars="true"
+        android:scrollbarSize="2dp">
+
+        <TextView
+            android:id="@+id/siDialogBody"
+            style="@style/SiText.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/si_muted"
+            android:textIsSelectable="false" />
+    </ScrollView>
+
+    <FrameLayout
+        android:id="@+id/siDialogContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/si_space_lg"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/siDialogButtons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/si_space_lg"
+        android:gravity="end"
+        android:orientation="horizontal" />
+</LinearLayout>

@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One row of a Stand-In list dialog, such as the in-session menu -->
+<!-- One row of a Stand-In list dialog, such as the in-session menu: 44 high, radius sm, body text -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@android:id/text1"
+    style="@style/SiText.Body"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="52dp"
+    android:minHeight="@dimen/si_size_button"
     android:gravity="center_vertical"
-    android:paddingStart="32dp"
-    android:paddingEnd="32dp"
-    android:background="@drawable/si_menu_row"
-    android:textColor="@color/si_text"
-    android:textSize="16sp" />
+    android:layout_marginStart="@dimen/si_space_md"
+    android:layout_marginEnd="@dimen/si_space_md"
+    android:paddingStart="@dimen/si_space_sm"
+    android:paddingEnd="@dimen/si_space_sm"
+    android:background="@drawable/si_menu_row" />

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Window background for stock AlertDialogs: the dialog panel, inset off the screen edge -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="@dimen/si_space_lg" android:insetRight="@dimen/si_space_lg"
+    android:insetTop="@dimen/si_space_lg" android:insetBottom="@dimen/si_space_lg"
+    android:drawable="@drawable/si_dialog_background" />

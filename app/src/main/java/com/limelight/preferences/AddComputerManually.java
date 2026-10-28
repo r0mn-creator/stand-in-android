@@ -42,6 +42,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class AddComputerManually extends AppCompatActivity {
     private TextView hostText;
+    private boolean adding;
     private ComputerManagerService.ComputerManagerBinder managerBinder;
     private final LinkedBlockingQueue<String> computersToAdd = new LinkedBlockingQueue<>();
     private Thread addThread;
@@ -124,8 +125,7 @@ public class AddComputerManually extends AppCompatActivity {
         boolean success;
         int portTestResult;
 
-        SpinnerDialog dialog = SpinnerDialog.displayDialog(this, getResources().getString(R.string.title_add_pc),
-            getResources().getString(R.string.msg_add_pc), false);
+        runOnUiThread(() -> setBusy(true, null));
 
         Uri uri = parseRawUserInputToUri(rawUserInput);
         try {
@@ -153,7 +153,7 @@ public class AddComputerManually extends AppCompatActivity {
             }
         } catch (InterruptedException e) {
             // Propagate the InterruptedException to the caller for proper handling
-            dialog.dismiss();
+            runOnUiThread(() -> setBusy(false, null));
             throw e;
         } catch (IllegalArgumentException e) {
             // This can be thrown from OkHttp if the host fails to canonicalize to a valid name.
@@ -173,52 +173,70 @@ public class AddComputerManually extends AppCompatActivity {
             portTestResult = MoonBridge.ML_TEST_RESULT_INCONCLUSIVE;
         }
 
-        dialog.dismiss();
-
+        final String shownHost = uri != null && uri.getHost() != null ? uri.getHost() : rawUserInput;
+        final String error;
         if (invalidInput) {
-            Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title), getResources().getString(R.string.addpc_unknown_host), false);
+            error = getString(R.string.si_add_invalid, rawUserInput);
         }
         else if (wrongSiteLocal) {
-            Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title), getResources().getString(R.string.addpc_wrong_sitelocal), false);
+            error = getString(R.string.si_add_wrong_subnet, shownHost);
         }
         else if (!success) {
-            String dialogText;
-            if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0)  {
-                dialogText = getResources().getString(R.string.nettest_text_blocked);
+            if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0) {
+                error = getString(R.string.si_add_blocked, shownHost);
             }
             else {
-                dialogText = getResources().getString(R.string.addpc_fail);
+                error = getString(R.string.si_add_unreachable, shownHost);
             }
-            Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title), dialogText, false);
         }
         else {
-            AddComputerManually.this.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(AddComputerManually.this, getResources().getString(R.string.addpc_success), Toast.LENGTH_LONG).show();
-
-                    if (!isFinishing()) {
-                        // Close the activity
-                        AddComputerManually.this.finish();
-                    }
-
-                    String pin = uri.getQueryParameter("pin");
-                    String passphrase = uri.getQueryParameter("passphrase");
-                    if (pin != null && passphrase != null) {
-                        Intent intent = new Intent(AddComputerManually.this, PcView.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.putExtra("hostname", uri.getHost());
-                        intent.putExtra("port", uri.getPort());
-                        intent.putExtra("pin", pin);
-                        intent.putExtra("passphrase", passphrase);
-
-                        startActivity(intent);
-                    }
-
-                }
-            });
+            error = null;
         }
 
+        AddComputerManually.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setBusy(false, error);
+                if (error != null) {
+                    return;
+                }
+
+                if (!isFinishing()) {
+                    // Close the dialog; the new PC shows up on the home screen
+                    AddComputerManually.this.finish();
+                }
+
+                String pin = uri.getQueryParameter("pin");
+                String passphrase = uri.getQueryParameter("passphrase");
+                if (pin != null && passphrase != null) {
+                    Intent intent = new Intent(AddComputerManually.this, PcView.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.putExtra("hostname", uri.getHost());
+                    intent.putExtra("port", uri.getPort());
+                    intent.putExtra("pin", pin);
+                    intent.putExtra("passphrase", passphrase);
+
+                    startActivity(intent);
+                }
+            }
+        });
+    }
+
+    // While adding, Add shows a spinner and the input locks; errors appear under the input
+    private void setBusy(boolean busy, String error) {
+        if (hostText == null) {
+            return;
+        }
+        adding = busy;
+        hostText.setEnabled(!busy);
+        findViewById(R.id.addPcButtonText).setVisibility(busy ? View.INVISIBLE : View.VISIBLE);
+        findViewById(R.id.addPcSpinner).setVisibility(busy ? View.VISIBLE : View.GONE);
+        TextView errorView = findViewById(R.id.addPcError);
+        errorView.setText(error);
+        errorView.setVisibility(error != null ? View.VISIBLE : View.GONE);
+        if (!busy && error != null) {
+            hostText.requestFocus();
+        }
     }
 
     private void startAddThread() {
@@ -327,7 +345,7 @@ public class AddComputerManually extends AppCompatActivity {
         UiHelper.notifyNewRootView(this);
 
         this.hostText = findViewById(R.id.hostTextView);
-        hostText.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        hostText.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         hostText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
@@ -354,6 +372,11 @@ public class AddComputerManually extends AppCompatActivity {
                 handleDoneEvent();
             }
         });
+        findViewById(R.id.addPcCancel).setOnClickListener(v -> finish());
+        // Tapping the scrim outside the panel cancels, like any dialog
+        findViewById(R.id.siScrim).setOnClickListener(v -> finish());
+        ((com.limelight.ui.si.SiSpinner) findViewById(R.id.addPcSpinner)).setColors(
+                getResources().getColor(R.color.si_on_accent, getTheme()), 0);
 
         // Bind to the ComputerManager service
         bindService(new Intent(AddComputerManually.this,
@@ -375,20 +398,16 @@ public class AddComputerManually extends AppCompatActivity {
                 hostName = server;
             }
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.pair_pc_confirm_title);
-            builder.setMessage(getString(R.string.pair_pc_confirm_message, hostName));
-
-            builder.setPositiveButton(getString(R.string.proceed), (dialog, which) -> {
-                dialog.dismiss();
-                finish();
-                computersToAdd.add(server + '?' + query);
-            });
-
-            builder.setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.dismiss());
-
-            AlertDialog dialog = builder.create();
-            dialog.show();
+            final String linkHost = hostName;
+            new com.limelight.ui.si.SiDialog(this)
+                    .title(getString(R.string.si_pair_link_title, linkHost))
+                    .body(getString(R.string.si_pair_link_body, linkHost))
+                    .cancelButton(getString(R.string.si_cancel))
+                    .primary(getString(R.string.si_pair), d -> {
+                        d.dismiss();
+                        computersToAdd.add(server + '?' + query);
+                    })
+                    .show();
         }
     }
 
@@ -396,8 +415,11 @@ public class AddComputerManually extends AppCompatActivity {
     private boolean handleDoneEvent() {
         String hostAddress = hostText.getText().toString().trim();
 
+        if (adding) {
+            return true;
+        }
         if (hostAddress.length() == 0) {
-            Toast.makeText(AddComputerManually.this, getResources().getString(R.string.addpc_enter_ip), Toast.LENGTH_LONG).show();
+            setBusy(false, getString(R.string.si_add_empty));
             return true;
         }
 

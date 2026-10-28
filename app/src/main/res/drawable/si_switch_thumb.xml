@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Switch thumb: 20, muted off / onAccent on -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true"><inset android:inset="3dp"><shape android:shape="oval"><solid android:color="@color/si_on_accent" /><size android:width="20dp" android:height="20dp" /></shape></inset></item>
+    <item><inset android:inset="3dp"><shape android:shape="oval"><solid android:color="@color/si_muted" /><size android:width="20dp" android:height="20dp" /></shape></inset></item>
+</selector>

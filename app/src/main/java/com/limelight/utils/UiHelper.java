@@ -218,36 +218,21 @@ public class UiHelper {
     }
 
     public static <T> void displayConfirmationDialog(Activity parent, String title, String message, String btnYesText, String btnNoText, final Runnable onYes, final Runnable onNo) {
-        DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
-            switch (which){
-                case DialogInterface.BUTTON_POSITIVE:
-                    if (onYes != null) {
-                        onYes.run();
-                    }
-                    break;
-
-                case DialogInterface.BUTTON_NEGATIVE:
-                    if (onNo != null) {
-                        onNo.run();
-                    }
-                    break;
-            }
-        };
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(parent);
-        builder.setMessage(Html.fromHtml(message));
-        if (title != null) {
-            builder.setTitle(title);
+        com.limelight.ui.si.SiDialog dialog = new com.limelight.ui.si.SiDialog(parent)
+                .title(title)
+                .body(Html.fromHtml(message))
+                .onCancel(onNo);
+        if (btnNoText != null) {
+            dialog.cancelButton(btnNoText);
         }
         if (btnYesText != null) {
-            builder.setPositiveButton(btnYesText, dialogClickListener);
+            dialog.primary(btnYesText, com.limelight.ui.si.SiDialog.closeThen(onYes));
         }
-        if (btnNoText != null) {
-            builder.setNegativeButton(btnNoText, dialogClickListener);
-        }
-        AlertDialog dialog = builder.create();
         dialog.show();
-        ((TextView)dialog.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
+        TextView body = dialog.getDialog().findViewById(R.id.siDialogBody);
+        if (body != null) {
+            body.setMovementMethod(LinkMovementMethod.getInstance());
+        }
     }
 
     public static void displayVdisplayConfirmationDialog(Activity parent, ComputerDetails computer, final Runnable onYes, final Runnable onNo) {
@@ -271,7 +256,7 @@ public class UiHelper {
                 null,
                 parent.getResources().getString(R.string.applist_quit_confirmation),
                 parent.getResources().getString(R.string.yes),
-                parent.getResources().getString(R.string.no),
+                parent.getResources().getString(R.string.si_cancel),
                 onYes,
                 onNo
         );

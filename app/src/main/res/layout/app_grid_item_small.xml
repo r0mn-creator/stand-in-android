@@ -9,7 +9,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/si_app_card"
+        android:background="@drawable/si_card"
         android:orientation="vertical"
         android:padding="8dp">
 

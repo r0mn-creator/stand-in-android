@@ -4,31 +4,57 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.TextView;
 
-public class SpinnerDialog implements Runnable,OnCancelListener {
+import com.limelight.R;
+import com.limelight.ui.si.SiDialog;
+
+/**
+ * Work in progress. Normally a Stand-In dialog with an inline spinner; for connecting to a PC,
+ * the full-window Connecting screen (DESIGN.md "Connecting"): spinner 48, "Connecting to PC…",
+ * a status line and a Cancel button.
+ */
+public class SpinnerDialog implements Runnable {
     private final String title;
-    private final String message;
+    private String message;
     private final Activity activity;
-    private ProgressDialog progress;
     private final boolean finish;
+    private final boolean connecting;
+    private SiDialog dialog;
+    private android.app.Dialog screen;
+    private TextView messageView;
+    private boolean shown;
 
     private static final ArrayList<SpinnerDialog> rundownDialogs = new ArrayList<>();
 
-    private SpinnerDialog(Activity activity, String title, String message, boolean finish)
+    private SpinnerDialog(Activity activity, String title, String message, boolean finish, boolean connecting)
     {
         this.activity = activity;
         this.title = title;
         this.message = message;
-        this.progress = null;
         this.finish = finish;
+        this.connecting = connecting;
     }
 
     public static SpinnerDialog displayDialog(Activity activity, String title, String message, boolean finish)
     {
-        SpinnerDialog spinner = new SpinnerDialog(activity, title, message, finish);
+        SpinnerDialog spinner = new SpinnerDialog(activity, title, message, finish, false);
+        activity.runOnUiThread(spinner);
+        return spinner;
+    }
+
+    /** The Connecting screen. Cancel (or Back) finishes the activity, like the old spinner did. */
+    public static SpinnerDialog displayConnecting(Activity activity, String pcName)
+    {
+        String title = pcName != null && !pcName.isEmpty()
+                ? activity.getString(R.string.si_connecting_to, pcName)
+                : activity.getString(R.string.si_connecting);
+        SpinnerDialog spinner = new SpinnerDialog(activity, title,
+                activity.getString(R.string.si_connecting_status), true, true);
         activity.runOnUiThread(spinner);
         return spinner;
     }
@@ -41,9 +67,7 @@ public class SpinnerDialog implements Runnable,OnCancelListener {
                 SpinnerDialog dialog = i.next();
                 if (dialog.activity == activity) {
                     i.remove();
-                    if (dialog.progress.isShowing()) {
-                        dialog.progress.dismiss();
-                    }
+                    dialog.close();
                 }
             }
         }
@@ -51,18 +75,75 @@ public class SpinnerDialog implements Runnable,OnCancelListener {
 
     public void dismiss()
     {
-        // Running again with progress != null will destroy it
+        // Running again once shown will destroy it
         activity.runOnUiThread(this);
     }
 
     public void setMessage(final String message)
     {
+        // The Connecting screen keeps its plain status line; stage names are jargon
+        if (connecting) {
+            return;
+        }
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                progress.setMessage(message);
+                SpinnerDialog.this.message = message;
+                if (messageView != null) {
+                    messageView.setText(message);
+                }
             }
         });
+    }
+
+    private void close() {
+        if (dialog != null) {
+            dialog.dismiss();
+        }
+        if (screen != null && screen.isShowing()) {
+            try {
+                screen.dismiss();
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    private void cancel() {
+        synchronized (rundownDialogs) {
+            rundownDialogs.remove(this);
+        }
+        close();
+        activity.finish();
+    }
+
+    private void showConnecting() {
+        screen = new android.app.Dialog(activity, R.style.SiFullWindow);
+        screen.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        View v = LayoutInflater.from(screen.getContext()).inflate(R.layout.si_connecting, null, false);
+        ((TextView) v.findViewById(R.id.siConnectingTitle)).setText(title);
+        messageView = v.findViewById(R.id.siConnectingStatus);
+        messageView.setText(message);
+        v.findViewById(R.id.siConnectingCancel).setOnClickListener(x -> cancel());
+        screen.setContentView(v);
+        screen.setCancelable(true);
+        screen.setOnCancelListener(d -> cancel());
+        screen.show();
+        Window w = screen.getWindow();
+        if (w != null) {
+            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        }
+        v.findViewById(R.id.siConnectingCancel).requestFocus();
+    }
+
+    private void showDialog() {
+        View content = LayoutInflater.from(activity).inflate(R.layout.si_progress_row, null, false);
+        messageView = content.findViewById(R.id.siProgressText);
+        messageView.setText(message);
+        dialog = new SiDialog(activity).title(title).content(content).cancelable(finish);
+        if (finish) {
+            dialog.onCancel(this::cancel).cancelButton(activity.getString(R.string.si_cancel));
+        }
+        dialog.show();
     }
 
     @Override
@@ -73,48 +154,26 @@ public class SpinnerDialog implements Runnable,OnCancelListener {
             return;
         }
 
-        if (progress == null)
+        if (!shown)
         {
-            progress = new ProgressDialog(activity);
-
-            progress.setTitle(title);
-            progress.setMessage(message);
-            progress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progress.setOnCancelListener(this);
-
-            // If we want to finish the activity when this is killed, make it cancellable
-            if (finish)
-            {
-                progress.setCancelable(true);
-                progress.setCanceledOnTouchOutside(false);
-            }
-            else
-            {
-                progress.setCancelable(false);
-            }
-
+            shown = true;
             synchronized (rundownDialogs) {
                 rundownDialogs.add(this);
-                progress.show();
+                if (connecting) {
+                    showConnecting();
+                }
+                else {
+                    showDialog();
+                }
             }
         }
         else
         {
             synchronized (rundownDialogs) {
-                if (rundownDialogs.remove(this) && progress.isShowing()) {
-                    progress.dismiss();
+                if (rundownDialogs.remove(this)) {
+                    close();
                 }
             }
         }
-    }
-
-    @Override
-    public void onCancel(DialogInterface dialog) {
-        synchronized (rundownDialogs) {
-            rundownDialogs.remove(this);
-        }
-
-        // This will only be called if finish was true, so we don't need to check again
-        activity.finish();
     }
 }

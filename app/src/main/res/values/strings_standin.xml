@@ -1,28 +1,142 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Stand-In wording (DESIGN.md): plain words, sentence case. Pairing "wants to pair", never "wants to connect". -->
 <resources>
+    <string name="si_product_name" translatable="false">Stand-In</string>
     <string name="si_your_pcs">Your PCs</string>
     <string name="si_add_pc">Add PC</string>
-    <string name="si_looking">Looking for PCs</string>
-    <string name="si_looking_detail">Make sure Stand-In Server is running on your big PC</string>
+    <string name="si_add_manually">Add PC manually</string>
+    <string name="si_looking">Looking for your PCs…</string>
+    <string name="si_looking_detail">Stand-In finds PCs on your network and on Tailscale.</string>
+    <string name="si_devices">Devices</string>
+    <string name="si_settings">Settings</string>
+    <string name="si_more">More</string>
+    <string name="si_back">Back</string>
+
     <string name="si_connect">Connect</string>
     <string name="si_pair">Pair</string>
     <string name="si_wake_connect">Wake and connect</string>
+    <string name="si_take_over">Take over</string>
     <string name="si_status_ready">Awake · Ready to connect</string>
-    <string name="si_status_session">Awake · Session running</string>
+    <string name="si_status_in_use">Awake · In use</string>
     <string name="si_status_unpaired">Awake · Not paired yet</string>
     <string name="si_status_asleep">Asleep · Wakes in a few seconds</string>
     <string name="si_status_waking">Waking up…</string>
     <string name="si_status_offline">Offline</string>
     <string name="si_status_checking">Checking…</string>
     <string name="si_short_awake">Awake</string>
-    <string name="si_short_session">In use</string>
+    <string name="si_short_in_use">In use</string>
     <string name="si_short_unpaired">Not paired</string>
     <string name="si_short_asleep">Asleep</string>
     <string name="si_short_offline">Offline</string>
-    <string name="si_short_checking">Checking</string>
+    <string name="si_short_checking">Checking…</string>
+
+    <!-- PC menu -->
+    <string name="si_menu_all_apps">All apps</string>
+    <string name="si_menu_wake">Wake</string>
+    <string name="si_menu_rename">Rename</string>
+    <string name="si_menu_test_network">Test network</string>
+    <string name="si_menu_remove">Remove</string>
+    <string name="si_remove_title">Remove %1$s?</string>
+    <string name="si_remove_body">You\'ll need to pair again to use it from this device.</string>
+    <string name="si_rename_title">Rename %1$s</string>
+    <string name="si_rename_body">This name is only used on this device.</string>
+    <string name="si_rename_label">Name</string>
+    <string name="si_save">Save</string>
+    <string name="si_cancel">Cancel</string>
+    <string name="si_ok">OK</string>
+    <string name="si_details">Details</string>
+    <string name="si_waking_toast">Waking %1$s…</string>
+    <string name="si_wake_failed">Couldn\'t send the wake signal to %1$s.</string>
+    <string name="si_wake_unavailable">%1$s can\'t be woken from here.</string>
+
+    <!-- Add a PC -->
+    <string name="si_add_title">Add a PC</string>
+    <string name="si_add_body">Enter the PC\'s name or IP address. It needs Stand-In Server running.</string>
+    <string name="si_add_hint">e.g. big-pc or 192.168.1.20</string>
+    <string name="si_add_label">Name or IP address</string>
+    <string name="si_add">Add</string>
+    <string name="si_add_empty">Enter a name or an IP address.</string>
+    <string name="si_add_invalid">\"%1$s\" doesn\'t look like a PC name or IP address.</string>
+    <string name="si_add_unreachable">Couldn\'t reach %1$s. Check that it\'s on and Stand-In Server is running.</string>
+    <string name="si_add_wrong_subnet">Couldn\'t reach %1$s. It looks like it\'s on a different network from this device.</string>
+    <string name="si_add_blocked">Couldn\'t reach %1$s. This network seems to block the connection.</string>
+    <string name="si_add_done">Added %1$s</string>
+    <string name="si_pair_link_title">Pair with %1$s?</string>
+    <string name="si_pair_link_body">A link wants to add %1$s and pair with it.</string>
+
+    <!-- Pair -->
+    <string name="si_pair_title">Pair with %1$s</string>
+    <string name="si_pair_body">On %1$s, open Stand-In from the tray and enter this code.</string>
+    <string name="si_pair_body_otp">On %1$s, confirm the pairing request from the tray.</string>
+    <string name="si_pair_waiting">Waiting for %1$s…</string>
     <string name="si_paired">Paired with %1$s</string>
-    <string name="si_back">Back</string>
+    <string name="si_pair_failed_title">Couldn\'t pair with %1$s</string>
+    <string name="si_pair_wrong_code">The code didn\'t match. Try again and check you typed all four digits.</string>
+    <string name="si_pair_failed_body">Try again. If it keeps failing, restart Stand-In Server on %1$s.</string>
+    <string name="si_pair_in_use">%1$s is in use right now. End the session on it, then try again.</string>
+    <string name="si_pair_busy">%1$s is already pairing with another device. Finish that first, then try again.</string>
+    <string name="si_pc_offline">%1$s is offline.</string>
+    <string name="si_cant_reach_title">Couldn\'t reach %1$s</string>
+    <string name="si_cant_reach_body">Check that it\'s on and Stand-In Server is running.</string>
+
+    <!-- Message / error -->
+    <string name="si_connect_failed_title">Couldn\'t connect to %1$s</string>
+    <string name="si_connect_failed_title_generic">Couldn\'t connect</string>
+    <string name="si_connect_failed_try">Check that %1$s is awake and Stand-In Server is running, then try again.</string>
+    <string name="si_connect_failed_try_generic">Check that the PC is awake and Stand-In Server is running, then try again.</string>
+    <string name="si_connect_blocked">This network seems to block the connection. Try another network, or Tailscale.</string>
+
+    <!-- Connecting -->
+    <string name="si_connecting_to">Connecting to %1$s…</string>
+    <string name="si_connecting">Connecting…</string>
+    <string name="si_connecting_status">Setting up your screens</string>
+    <string name="si_loading">Loading…</string>
+
+    <!-- All apps -->
     <string name="si_choose_app">Choose what to open</string>
     <string name="si_app_running">Running</string>
     <string name="si_app_hidden">Hidden</string>
+
+    <!-- Devices -->
+    <string name="si_send_to">Send to</string>
+    <string name="si_no_pc">No PC</string>
+    <string name="si_online">Online</string>
+    <string name="si_offline">Offline</string>
+    <string name="si_devices_intro">A device that\'s switched on is unplugged from this machine and plugged into your PC. Use it for wheels, flight sticks, pedals, drawing tablets and anything that needs its own driver on the PC.</string>
+    <string name="si_devices_coming_soon">Sending USB devices from Android is coming soon.</string>
+    <string name="si_on_this_machine">On this machine</string>
+    <string name="si_test_controller">Test Controller</string>
+    <string name="si_test_controller_sub">Built in · a virtual gamepad for trying it out</string>
+    <string name="si_device_not_sent">Not sent</string>
+    <string name="si_no_usb_devices">No USB devices plugged in.</string>
+    <string name="si_unknown_maker">Unknown maker</string>
+
+    <!-- Settings -->
+    <string name="si_cat_display">Display &amp; quality</string>
+    <string name="si_cat_audio">Audio</string>
+    <string name="si_cat_input">Input</string>
+    <string name="si_cat_controllers">Controllers</string>
+    <string name="si_cat_devices">Devices</string>
+    <string name="si_cat_appearance">Appearance</string>
+    <string name="si_cat_advanced">Advanced</string>
+    <string name="si_cat_about">About</string>
+    <string name="si_usb_devices">USB devices</string>
+    <string name="si_usb_devices_sub">Choose what\'s plugged into your PC</string>
+    <string name="si_send_auto">Send devices automatically</string>
+    <string name="si_send_auto_sub">Coming soon on Android</string>
+    <string name="si_theme">Theme</string>
+    <string name="si_theme_midnight">Midnight Slate</string>
+    <string name="si_about_version">Version</string>
+    <string name="si_about_credits_title">Built on Moonlight, Artemis and Apollo</string>
+    <string name="si_about_credits">Stand-In Client is a fork of Artemis, which is built on Moonlight. Stand-In Server is built on Apollo. All are free software under the GNU General Public License v3.</string>
+    <string name="si_about_license">License</string>
+    <string name="si_about_license_value">GPLv3</string>
+    <string name="si_about_moonlight">Moonlight</string>
+    <string name="si_about_moonlight_sub">moonlight-stream.org · GPLv3</string>
+    <string name="si_about_artemis">Artemis</string>
+    <string name="si_about_artemis_sub">ClassicOldSong/moonlight-android · GPLv3</string>
+    <string name="si_about_apollo">Apollo</string>
+    <string name="si_about_apollo_sub">ClassicOldSong/Apollo · GPLv3</string>
+    <string name="si_about_source">Source code</string>
+    <string name="si_about_source_sub">Available under the GPLv3</string>
 </resources>
