@@ -201,7 +201,17 @@ public class SiDialog {
         View focus = primaryButton != null ? primaryButton
                 : (buttons.getChildCount() > 0 ? buttons.getChildAt(0) : null);
         if (focus != null && content.getVisibility() != View.VISIBLE) {
-            focus.requestFocus();
+            focus.setFocusedByDefault(true);
+            final boolean keys = context instanceof Activity
+                    && !((Activity) context).getWindow().getDecorView().isInTouchMode();
+            focus.post(() -> {
+                if (keys) {
+                    focus.requestFocusFromTouch();
+                }
+                else {
+                    focus.requestFocus();
+                }
+            });
         }
     }
 

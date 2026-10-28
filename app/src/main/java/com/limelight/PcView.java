@@ -690,6 +690,13 @@ public class PcView extends AppCompatActivity {
 
         refreshProfileButton();
 
+        // Settings > Appearance > Show the version tag
+        View versionTag = findViewById(R.id.versionTag);
+        if (versionTag != null) {
+            versionTag.setVisibility(PreferenceManager.getDefaultSharedPreferences(this)
+                    .getBoolean("checkbox_show_version_tag", true) ? View.VISIBLE : View.GONE);
+        }
+
         inForeground = true;
         startComputerUpdates();
     }

@@ -75,6 +75,10 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:thumb">@drawable/si_switch_thumb</item>
         <item name="track">@drawable/si_switch_track</item>
+        <!-- The Material theme's switch style would tint ours purple -->
+        <item name="trackTint">@null</item>
+        <item name="thumbTint">@null</item>
+        <item name="android:thumbTint">@null</item>
         <item name="android:background">@null</item>
         <item name="android:minWidth">0dp</item>
         <item name="android:minHeight">0dp</item>
@@ -179,4 +183,60 @@
     </style>
 
     <style name="SiPopupMenuText" parent="SiText.Body" />
+
+    <!-- Settings rows (AndroidX Preference) drawn as Stand-In rows inside group cards -->
+    <style name="SiPreferenceTheme" parent="PreferenceThemeOverlay">
+        <item name="preferenceStyle">@style/SiPreference</item>
+        <item name="checkBoxPreferenceStyle">@style/SiPreferenceSwitch</item>
+        <item name="switchPreferenceCompatStyle">@style/SiPreferenceSwitchCompat</item>
+        <item name="dialogPreferenceStyle">@style/SiPreferenceValue</item>
+        <item name="editTextPreferenceStyle">@style/SiPreferenceEditText</item>
+        <item name="dropdownPreferenceStyle">@style/SiPreferenceValue</item>
+        <item name="preferenceCategoryStyle">@style/SiPreferenceCategory</item>
+        <item name="preferenceScreenStyle">@style/SiPreference</item>
+        <item name="preferenceFragmentCompatStyle">@style/SiPreferenceFragment</item>
+    </style>
+
+    <style name="SiPreference" parent="Preference.Material">
+        <item name="android:layout">@layout/si_pref_row</item>
+        <item name="iconSpaceReserved">false</item>
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">false</item>
+    </style>
+
+    <style name="SiPreferenceSwitch" parent="Preference.CheckBoxPreference.Material">
+        <item name="android:layout">@layout/si_pref_row</item>
+        <item name="android:widgetLayout">@layout/si_pref_widget_switch</item>
+        <item name="iconSpaceReserved">false</item>
+    </style>
+
+    <style name="SiPreferenceSwitchCompat" parent="Preference.SwitchPreferenceCompat.Material">
+        <item name="android:layout">@layout/si_pref_row</item>
+        <item name="android:widgetLayout">@layout/si_pref_widget_switch_compat</item>
+        <item name="iconSpaceReserved">false</item>
+    </style>
+
+    <style name="SiPreferenceValue" parent="Preference.DialogPreference.Material">
+        <item name="android:layout">@layout/si_pref_row</item>
+        <item name="android:widgetLayout">@layout/si_pref_widget_value</item>
+        <item name="iconSpaceReserved">false</item>
+    </style>
+
+    <style name="SiPreferenceEditText" parent="Preference.DialogPreference.EditTextPreference.Material">
+        <item name="android:layout">@layout/si_pref_row</item>
+        <item name="android:widgetLayout">@layout/si_pref_widget_value</item>
+        <item name="iconSpaceReserved">false</item>
+    </style>
+
+    <style name="SiPreferenceCategory" parent="Preference.Category.Material">
+        <item name="android:layout">@layout/si_pref_section</item>
+        <item name="iconSpaceReserved">false</item>
+        <item name="allowDividerAbove">false</item>
+        <item name="allowDividerBelow">false</item>
+    </style>
+
+    <style name="SiPreferenceFragment" parent="PreferenceFragment.Material">
+        <item name="android:divider">@null</item>
+        <item name="android:dividerHeight">0dp</item>
+    </style>
 </resources>

@@ -8,7 +8,9 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.NonNull;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceViewHolder;
 
 import com.limelight.R;
 
@@ -67,6 +69,70 @@ public class SeekBarPreference extends Preference
         divisor = attrs.getAttributeIntValue(SEEKBAR_SCHEMA_URL, "divisor", 1);
         keyStepSize = attrs.getAttributeIntValue(SEEKBAR_SCHEMA_URL, "keyStep", 0);
         seekbarMax = maxValue - minValue;
+
+        // Stand-In slider row: the slider sits in the row; left/right on it changes the value
+        setLayoutResource(R.layout.si_pref_slider);
+        setSelectable(false);
+    }
+
+    /** Redraws the row after the value was changed elsewhere (e.g. Quality resets with resolution). */
+    public void refresh() {
+        notifyChanged();
+    }
+
+    private String formatValue(int value) {
+        String t;
+        if (divisor != 1) {
+            t = String.format((Locale)null, "%.1f", value / (float)divisor);
+        }
+        else {
+            t = String.valueOf(value);
+        }
+        return suffix == null ? t : t.concat(suffix.length() > 1 ? " "+suffix : suffix);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull PreferenceViewHolder holder) {
+        super.onBindViewHolder(holder);
+        final SeekBar bar = (SeekBar) holder.findViewById(R.id.si_seekbar);
+        final TextView value = (TextView) holder.findViewById(R.id.si_value);
+        if (bar == null) {
+            return;
+        }
+        if (shouldPersist()) {
+            currentValue = getPersistedInt(defaultValue);
+        }
+        bar.setOnSeekBarChangeListener(null);
+        bar.setMax(seekbarMax);
+        bar.setKeyProgressIncrement(keyStepSize != 0 ? keyStepSize : Math.max(stepSize, 1));
+        bar.setProgress(currentValue - minValue);
+        bar.setEnabled(isEnabled());
+        bar.setFocusable(isEnabled());
+        bar.setContentDescription(getTitle());
+        value.setText(formatValue(currentValue));
+        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                int v = progress + minValue;
+                int rounded = Math.round((float) v / stepSize) * stepSize;
+                rounded = Math.max(minValue, Math.min(maxValue, rounded));
+                value.setText(formatValue(rounded));
+                if (fromUser && rounded != currentValue && callChangeListener(rounded)) {
+                    currentValue = rounded;
+                    if (shouldPersist()) {
+                        persistInt(rounded);
+                    }
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                seekBar.setProgress(currentValue - minValue);
+            }
+        });
     }
 
     protected AlertDialog getDialog() {

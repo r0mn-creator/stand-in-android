@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Trailing value (body muted) + chevron-right -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/si_value"
+        style="@style/SiText.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxWidth="200dp"
+        android:singleLine="true"
+        android:textColor="@color/si_muted_enabled" />
+
+    <ImageView
+        android:id="@+id/si_chevron"
+        android:layout_width="@dimen/si_size_icon_small"
+        android:layout_height="@dimen/si_size_icon_small"
+        android:layout_marginStart="@dimen/si_space_xs"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_si_chevron_right"
+        android:tint="@color/si_muted" />
+</LinearLayout>

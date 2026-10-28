@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sidebar category: 44 high, radius sm, icon 18 + label; selected = raised fill + accent icon -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/si_size_sidebar_width"
+    android:layout_height="@dimen/si_size_button"
+    android:background="@drawable/si_sidebar_row"
+    android:clickable="true"
+    android:defaultFocusHighlightEnabled="false"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/si_space_sm"
+    android:paddingEnd="@dimen/si_space_sm">
+
+    <ImageView
+        android:id="@+id/siNavIcon"
+        android:layout_width="@dimen/si_size_icon_small"
+        android:layout_height="@dimen/si_size_icon_small"
+        android:duplicateParentState="true"
+        android:importantForAccessibility="no"
+        android:tint="@color/si_icon_tint_nav" />
+
+    <TextView
+        android:id="@+id/siNavText"
+        style="@style/SiText.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/si_space_sm"
+        android:layout_weight="1"
+        android:singleLine="true" />
+
+    <ImageView
+        android:id="@+id/siNavChevron"
+        android:layout_width="@dimen/si_size_icon_small"
+        android:layout_height="@dimen/si_size_icon_small"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_si_chevron_right"
+        android:tint="@color/si_muted"
+        android:visibility="gone" />
+</LinearLayout>

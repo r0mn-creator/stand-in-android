@@ -34,6 +34,13 @@ public class ConfirmDeleteKeyboardPreference extends DialogPreference {
         super(context);
     }
 
+    /** Clears the saved on-screen keyboard layout. */
+    public static void reset(Context context) {
+        String name = PreferenceManager.getDefaultSharedPreferences(context).getString(OSC_PREFERENCE, OSC_PREFERENCE_VALUE);
+        context.getSharedPreferences(name, Context.MODE_PRIVATE).edit().clear().apply();
+        Toast.makeText(context, R.string.toast_reset_osc_success, Toast.LENGTH_SHORT).show();
+    }
+
     public static class DialogFragmentCompat extends PreferenceDialogFragmentCompat {
         public static DialogFragmentCompat newInstance(String key) {
             final DialogFragmentCompat fragment = new DialogFragmentCompat();

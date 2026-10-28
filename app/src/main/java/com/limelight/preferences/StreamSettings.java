@@ -57,6 +57,19 @@ import com.limelight.utils.FileUriUtils;
 import com.limelight.utils.PerformanceDataTracker;
 import com.limelight.utils.UiHelper;
 import org.json.JSONObject;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.Nullable;
+import androidx.preference.DialogPreference;
+import androidx.preference.PreferenceGroup;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.limelight.DevicesActivity;
+import com.limelight.ui.si.Si;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -71,6 +84,26 @@ public class StreamSettings extends AppCompatActivity {
 
     private SettingsFragment prefsFragment;
 
+    /** Opens Settings on one category, e.g. Devices. */
+    public static final String EXTRA_CATEGORY = "si_category";
+
+    // The sidebar, in DESIGN.md order: preference category key, name, icon
+    static final String[] CATEGORY_KEYS = {
+            "si_cat_display", "si_cat_audio", "si_cat_input", "si_cat_controllers",
+            "si_cat_devices", "si_cat_appearance", "si_cat_advanced", "si_cat_about" };
+    private static final int[] CATEGORY_TITLES = {
+            R.string.si_cat_display, R.string.si_cat_audio, R.string.si_cat_input, R.string.si_cat_controllers,
+            R.string.si_cat_devices, R.string.si_cat_appearance, R.string.si_cat_advanced, R.string.si_cat_about };
+    private static final int[] CATEGORY_ICONS = {
+            R.drawable.ic_si_display, R.drawable.ic_si_speaker, R.drawable.ic_si_keyboard, R.drawable.ic_si_gamepad,
+            R.drawable.ic_si_usb, R.drawable.ic_si_palette, R.drawable.ic_si_sliders, R.drawable.ic_si_info };
+
+    private String currentCategory = CATEGORY_KEYS[0];
+    private boolean twoPane;
+    // Narrow windows: showing one category's page (else the category list)
+    private boolean showingPage;
+    private OnBackPressedCallback pageBack;
+
     // HACK for Android 9
     static DisplayCutout displayCutoutP;
 
@@ -82,7 +115,7 @@ public class StreamSettings extends AppCompatActivity {
         prefsFragment = new SettingsFragment(PreferenceConfiguration.readPreferences(
                 this,
                 PreferenceManager.getDefaultSharedPreferences(this)
-        ));
+        ), currentCategory);
         getSupportFragmentManager().beginTransaction().replace(
                 R.id.stream_settings, prefsFragment
         ).commitAllowingStateLoss();
@@ -99,7 +132,136 @@ public class StreamSettings extends AppCompatActivity {
 
         setContentView(R.layout.activity_stream_settings);
 
-//        UiHelper.notifyNewRootView(this);
+        UiHelper.notifyNewRootView(this);
+
+        String requested = getIntent().getStringExtra(EXTRA_CATEGORY);
+        if (savedInstanceState != null) {
+            requested = savedInstanceState.getString(EXTRA_CATEGORY, requested);
+        }
+        if (requested != null) {
+            currentCategory = requested;
+        }
+
+        twoPane = getResources().getConfiguration().screenWidthDp >= 760;
+        buildSidebar();
+        findViewById(R.id.settingsBack).setOnClickListener(v -> {
+            if (!twoPane && showingPage) {
+                showCategoryList();
+            }
+            else {
+                exitSettings();
+            }
+        });
+        pageBack = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                showCategoryList();
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, pageBack);
+
+        if (twoPane) {
+            findViewById(R.id.settingsContent).setVisibility(View.VISIBLE);
+        }
+        else if (requested != null) {
+            showCategoryPage();
+        }
+        else {
+            showCategoryList();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(EXTRA_CATEGORY, currentCategory);
+    }
+
+    private void buildSidebar() {
+        LinearLayout sidebar = findViewById(R.id.settingsSidebar);
+        sidebar.removeAllViews();
+        LayoutInflater inflater = getLayoutInflater();
+        for (int i = 0; i < CATEGORY_KEYS.length; i++) {
+            final String key = CATEGORY_KEYS[i];
+            View row = inflater.inflate(R.layout.si_settings_nav_row, sidebar, false);
+            ((ImageView) row.findViewById(R.id.siNavIcon)).setImageResource(CATEGORY_ICONS[i]);
+            ((TextView) row.findViewById(R.id.siNavText)).setText(CATEGORY_TITLES[i]);
+            row.setTag(key);
+            if (!twoPane) {
+                // Narrow: the list is the page, full width, each row leads somewhere
+                row.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+                row.findViewById(R.id.siNavChevron).setVisibility(View.VISIBLE);
+            }
+            row.setOnClickListener(v -> selectCategory(key));
+            if (twoPane) {
+                // Moving onto a category shows it, so the D-pad can browse without pressing A
+                row.setOnFocusChangeListener((v, hasFocus) -> {
+                    if (hasFocus) {
+                        selectCategory(key);
+                    }
+                });
+            }
+            sidebar.addView(row);
+        }
+        if (!twoPane) {
+            sidebar.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+            findViewById(R.id.settingsSidebarScroll).getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+            sidebar.setPadding(sidebar.getPaddingLeft(), sidebar.getPaddingTop(),
+                    sidebar.getPaddingLeft(), sidebar.getPaddingBottom());
+        }
+        updateSidebarSelection();
+    }
+
+    private void updateSidebarSelection() {
+        LinearLayout sidebar = findViewById(R.id.settingsSidebar);
+        for (int i = 0; i < sidebar.getChildCount(); i++) {
+            View row = sidebar.getChildAt(i);
+            boolean selected = currentCategory.equals(row.getTag());
+            row.setActivated(twoPane && selected);
+            // The D-pad starts on the open category
+            row.setFocusedByDefault(selected);
+        }
+    }
+
+    private void selectCategory(String key) {
+        boolean changed = !key.equals(currentCategory);
+        currentCategory = key;
+        updateSidebarSelection();
+        if (prefsFragment != null && changed) {
+            prefsFragment.showCategory(key);
+        }
+        if (!twoPane) {
+            showCategoryPage();
+        }
+    }
+
+    private int categoryTitle(String key) {
+        for (int i = 0; i < CATEGORY_KEYS.length; i++) {
+            if (CATEGORY_KEYS[i].equals(key)) {
+                return CATEGORY_TITLES[i];
+            }
+        }
+        return R.string.si_settings;
+    }
+
+    private void showCategoryList() {
+        showingPage = false;
+        pageBack.setEnabled(false);
+        findViewById(R.id.settingsSidebarScroll).setVisibility(View.VISIBLE);
+        findViewById(R.id.settingsContent).setVisibility(View.GONE);
+        ((TextView) findViewById(R.id.settingsTitle)).setText(R.string.si_settings);
+        View row = findViewById(R.id.settingsSidebar).findViewWithTag(currentCategory);
+        if (row != null) {
+            row.requestFocus();
+        }
+    }
+
+    private void showCategoryPage() {
+        showingPage = true;
+        pageBack.setEnabled(true);
+        findViewById(R.id.settingsSidebarScroll).setVisibility(View.GONE);
+        findViewById(R.id.settingsContent).setVisibility(View.VISIBLE);
+        ((TextView) findViewById(R.id.settingsTitle)).setText(categoryTitle(currentCategory));
     }
 
     @Override
@@ -141,6 +303,14 @@ public class StreamSettings extends AppCompatActivity {
     @Override
     // NOTE: This will NOT be called on Android 13+ with android:enableOnBackInvokedCallback="true"
     public void onBackPressed() {
+        if (!twoPane && showingPage) {
+            showCategoryList();
+            return;
+        }
+        exitSettings();
+    }
+
+    private void exitSettings() {
         finish();
 
         // Language changes are handled via configuration changes in Android 13+,
@@ -166,9 +336,94 @@ public class StreamSettings extends AppCompatActivity {
         private boolean nativeFramerateShown = false;
 
         private PreferenceConfiguration prevPrefConfig;
+        private String category;
 
+        public SettingsFragment() {
+            this(null, StreamSettings.CATEGORY_KEYS[0]);
+        }
+
+        /** Every category on one page (the profile editor). */
         public SettingsFragment(PreferenceConfiguration prefCfg) {
+            this(prefCfg, null);
+        }
+
+        public SettingsFragment(PreferenceConfiguration prefCfg, String category) {
             prevPrefConfig = prefCfg;
+            this.category = category;
+        }
+
+        // Moonlight removes options a device can't use; they may live in any group now
+        private void removePref(String key) {
+            removePref(findPreference(key));
+        }
+
+        private void removePref(Preference pref) {
+            if (pref != null && pref.getParent() != null) {
+                pref.getParent().removePreference(pref);
+            }
+        }
+
+        /** Shows one sidebar category: its groups become the page. */
+        public void showCategory(String key) {
+            category = key;
+            PreferenceScreen screen = getPreferenceScreen();
+            if (screen == null) {
+                return;
+            }
+            for (int i = 0; i < screen.getPreferenceCount(); i++) {
+                Preference top = screen.getPreference(i);
+                top.setVisible(key == null || (top.getKey() != null && top.getKey().equals(key)));
+                if (top instanceof PreferenceGroup) {
+                    // A group whose options were all removed on this device shows nothing
+                    PreferenceGroup cat = (PreferenceGroup) top;
+                    for (int j = 0; j < cat.getPreferenceCount(); j++) {
+                        Preference group = cat.getPreference(j);
+                        if (group instanceof PreferenceGroup) {
+                            group.setVisible(((PreferenceGroup) group).getPreferenceCount() > 0);
+                        }
+                    }
+                }
+            }
+            if (getListView() != null) {
+                getListView().scrollToPosition(0);
+            }
+        }
+
+        // Sliders show values that other settings can change (Quality follows resolution and frame rate)
+        private final SharedPreferences.OnSharedPreferenceChangeListener sliderRefresher = (prefs, key) -> {
+            Preference p = key != null ? findPreference(key) : null;
+            if (p instanceof SeekBarPreference) {
+                ((SeekBarPreference) p).refresh();
+            }
+        };
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(sliderRefresher);
+        }
+
+        @Override
+        public void onPause() {
+            getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(sliderRefresher);
+            super.onPause();
+        }
+
+        @Override
+        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            RecyclerView list = getListView();
+            list.setPadding(0, 0, 0, Si.dp(requireContext(), 24));
+            list.setClipToPadding(false);
+            list.setVerticalScrollBarEnabled(false);
+            list.setItemAnimator(null);
+            setDivider(null);
+        }
+
+        @NonNull
+        @Override
+        protected RecyclerView.Adapter onCreateAdapter(@NonNull PreferenceScreen preferenceScreen) {
+            return new SiPreferenceAdapter(preferenceScreen);
         }
 
         protected SharedPreferences getPrefs() {
@@ -318,9 +573,7 @@ public class StreamSettings extends AppCompatActivity {
         @NonNull
         @Override
         public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            View view = super.onCreateView(inflater, container, savedInstanceState);
-            UiHelper.applyStatusBarPadding(view);
-            return view;
+            return super.onCreateView(inflater, container, savedInstanceState);
         }
 
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState, boolean unused) {
@@ -329,7 +582,19 @@ public class StreamSettings extends AppCompatActivity {
 
         @Override
         public void onCreatePreferences(Bundle bundle, String s) {
+            if (prevPrefConfig == null) {
+                prevPrefConfig = PreferenceConfiguration.readPreferences(requireContext());
+            }
             initializePreferences();
+
+            Preference usb = findPreference("si_usb_devices");
+            if (usb != null) {
+                usb.setOnPreferenceClickListener(p -> {
+                    startActivity(new Intent(getActivity(), DevicesActivity.class));
+                    return true;
+                });
+            }
+            showCategory(category);
         }
 
         public void initializePreferences() {
@@ -343,11 +608,11 @@ public class StreamSettings extends AppCompatActivity {
             if (!pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
                 PreferenceCategory category = findPreference("category_onscreen_controls");
                 if (category != null) {
-                    screen.removePreference(category);
+                    removePref(category);
                 }
                 category = findPreference("category_special_key_layout");
                 if (category != null) {
-                    screen.removePreference(category);
+                    removePref(category);
                 }
             }
 
@@ -357,7 +622,7 @@ public class StreamSettings extends AppCompatActivity {
                     getActivity().getPackageManager().hasSystemFeature("com.nvidia.feature.shield")) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_input_settings");
-                category.removePreference(findPreference("checkbox_absolute_mouse_mode"));
+                removePref("checkbox_absolute_mouse_mode");
             }
 
             // Hide gamepad motion sensor option when running on OSes before Android 12.
@@ -365,7 +630,7 @@ public class StreamSettings extends AppCompatActivity {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_gamepad_settings");
-                category.removePreference(findPreference("checkbox_gamepad_motion_sensors"));
+                removePref("checkbox_gamepad_motion_sensors");
             }
 
             // Hide gamepad motion sensor fallback option if the device has no gyro or accelerometer
@@ -373,16 +638,16 @@ public class StreamSettings extends AppCompatActivity {
                     !activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE)) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_gamepad_settings");
-                category.removePreference(findPreference("checkbox_force_device_motion"));
-                category.removePreference(findPreference("checkbox_gamepad_motion_fallback"));
+                removePref("checkbox_force_device_motion");
+                removePref("checkbox_gamepad_motion_fallback");
             }
 
             // Hide USB driver options on devices without USB host support
             if (!pm.hasSystemFeature(PackageManager.FEATURE_USB_HOST)) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_gamepad_settings");
-                category.removePreference(findPreference("checkbox_usb_bind_all"));
-                category.removePreference(findPreference("checkbox_usb_driver"));
+                removePref("checkbox_usb_bind_all");
+                removePref("checkbox_usb_driver");
             }
 
             // Remove PiP mode on devices pre-Oreo, where the feature is not available (some low RAM devices),
@@ -392,39 +657,39 @@ public class StreamSettings extends AppCompatActivity {
                     pm.hasSystemFeature("com.amazon.software.fireos")) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_ui_settings");
-                category.removePreference(findPreference("checkbox_enable_pip"));
+                removePref("checkbox_enable_pip");
             }
 
             // Fire TV apps are not allowed to use WebViews or browsers, so hide the Help category
             /*if (getActivity().getPackageManager().hasSystemFeature("amazon.hardware.fire_tv")) {
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_help");
-                screen.removePreference(category);
+                removePref(category);
             }*/
             PreferenceCategory category_gamepad_settings =
                     (PreferenceCategory) findPreference("category_gamepad_settings");
             // Remove the vibration options if the device can't vibrate
             if (!((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasVibrator()) {
-                category_gamepad_settings.removePreference(findPreference("checkbox_vibrate_fallback"));
-                category_gamepad_settings.removePreference(findPreference("seekbar_vibrate_fallback_strength"));
+                removePref("checkbox_vibrate_fallback");
+                removePref("seekbar_vibrate_fallback_strength");
                 // The entire OSC category may have already been removed by the touchscreen check above
                 PreferenceCategory category = findPreference("category_onscreen_controls");
                 if (category != null) {
-                    category.removePreference(findPreference("checkbox_vibrate_osc"));
+                    removePref("checkbox_vibrate_osc");
                 }
                 category = findPreference("category_special_key_layout");
                 if (category != null) {
-                    category.removePreference(findPreference("checkbox_vibrate_keyboard"));
+                    removePref("checkbox_vibrate_keyboard");
                 }
                 category = findPreference("category_gamepad_settings");
                 if (category != null) {
-                    category.removePreference(findPreference("checkbox_enable_device_rumble"));
+                    removePref("checkbox_enable_device_rumble");
                 }
             }
             else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
                     !((Vibrator)getActivity().getSystemService(Context.VIBRATOR_SERVICE)).hasAmplitudeControl()) {
                 // Remove the vibration strength selector of the device doesn't have amplitude control
-                category_gamepad_settings.removePreference(findPreference("seekbar_vibrate_fallback_strength"));
+                removePref("seekbar_vibrate_fallback_strength");
             }
 
             // Check custom resolution
@@ -634,7 +899,7 @@ public class StreamSettings extends AppCompatActivity {
                 LimeLog.info("Excluding HDR toggle based on OS");
                 PreferenceCategory category =
                         (PreferenceCategory) findPreference("category_video_settings");
-                category.removePreference(findPreference("checkbox_enable_hdr"));
+                removePref("checkbox_enable_hdr");
             }
             else {
                 Display.HdrCapabilities hdrCaps = display.getHdrCapabilities();
@@ -655,7 +920,7 @@ public class StreamSettings extends AppCompatActivity {
                     LimeLog.info("Excluding HDR toggle based on display capabilities");
                     PreferenceCategory category =
                             (PreferenceCategory) findPreference("category_video_settings");
-                    category.removePreference(findPreference("checkbox_enable_hdr"));
+                    removePref("checkbox_enable_hdr");
                 }
                 else if (PreferenceConfiguration.isShieldAtvFirmwareWithBrokenHdr()) {
                     LimeLog.info("Disabling HDR toggle on old broken SHIELD TV firmware");
@@ -1046,14 +1311,17 @@ public class StreamSettings extends AppCompatActivity {
 
         @Override
         public void onDisplayPreferenceDialog(@NonNull Preference preference) {
+            // Every picker and confirmation is a Stand-In popup or dialog (SiPreferenceDialogs)
             if (preference instanceof ConfirmDeleteOscPreference) {
-                DialogFragment dialogFragment = ConfirmDeleteOscPreference.DialogFragmentCompat.newInstance(preference.getKey());
-                dialogFragment.setTargetFragment(this, 0);
-                dialogFragment.show(getFragmentManager(), null);
+                SiPreferenceDialogs.confirm(this, (DialogPreference) preference,
+                        () -> ConfirmDeleteOscPreference.reset(requireContext()));
             } else if (preference instanceof ConfirmDeleteKeyboardPreference) {
-                DialogFragment dialogFragment = ConfirmDeleteKeyboardPreference.DialogFragmentCompat.newInstance(preference.getKey());
-                dialogFragment.setTargetFragment(this, 0);
-                dialogFragment.show(getFragmentManager(), null);
+                SiPreferenceDialogs.confirm(this, (DialogPreference) preference,
+                        () -> ConfirmDeleteKeyboardPreference.reset(requireContext()));
+            } else if (preference instanceof ListPreference) {
+                SiPreferenceDialogs.pick(this, (ListPreference) preference);
+            } else if (preference instanceof EditTextPreference) {
+                SiPreferenceDialogs.editText(this, (EditTextPreference) preference);
             } else super.onDisplayPreferenceDialog(preference);
         }
 

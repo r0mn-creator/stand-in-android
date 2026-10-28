@@ -151,11 +151,18 @@ public class SiMenu {
         int xoff = alignStart ? 0 : anchor.getWidth() - w;
         popup.showAsDropDown(anchor, xoff, Si.dp(context, 4), Gravity.NO_GRAVITY);
 
+        // Focus starts on the chosen value (pickers) or the first row, once the popup has focus
+        // A new window starts in touch mode, so a D-pad user would see no focus until the
+        // next key; when the menu was opened with keys, show the focus right away.
         final View focus = checkedRow != null ? checkedRow : first;
+        final boolean keys = !anchor.isInTouchMode();
         if (focus != null) {
-            focus.post(new Runnable() {
-                @Override
-                public void run() {
+            focus.setFocusedByDefault(true);
+            focus.post(() -> {
+                if (keys) {
+                    focus.requestFocusFromTouch();
+                }
+                else {
                     focus.requestFocus();
                 }
             });

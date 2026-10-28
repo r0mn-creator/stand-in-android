@@ -2,4 +2,6 @@
 <resources>
     <!-- Looked up by GenericGridAdapter; Stand-In tiles show their own spinner instead -->
     <item type="id" name="grid_spinner" />
+    <!-- Settings rows carry their preference key, so pickers can anchor to them -->
+    <item type="id" name="si_pref_key" />
 </resources>

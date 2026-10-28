@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Section label above a group: label style, muted, 24 above / 8 below -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/title"
+    style="@style/SiText.Label"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="@dimen/si_space_lg"
+    android:paddingBottom="@dimen/si_space_xs"
+    android:textColor="@color/si_muted" />
