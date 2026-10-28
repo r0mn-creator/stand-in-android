@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Device row: kind icon in a 36 circle; name; maker · ids; status line (caption); switch -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:defaultFocusHighlightEnabled="false"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/si_size_row_with_subtitle"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/si_space_md"
+    android:paddingTop="@dimen/si_space_sm"
+    android:paddingEnd="@dimen/si_space_md"
+    android:paddingBottom="@dimen/si_space_sm">
+
+    <FrameLayout
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="@drawable/si_icon_circle">
+
+        <ImageView
+            android:id="@+id/deviceIcon"
+            android:layout_width="@dimen/si_size_icon_small"
+            android:layout_height="@dimen/si_size_icon_small"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:tint="@color/si_muted" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/si_space_sm"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/deviceName"
+            style="@style/SiText.BodyStrong"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/deviceDetail"
+            style="@style/SiText.Label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="@color/si_muted" />
+
+        <TextView
+            android:id="@+id/deviceStatus"
+            style="@style/SiText.Caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/si_muted" />
+    </LinearLayout>
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/deviceSwitch"
+        style="@style/SiSwitch"
+        android:layout_marginStart="@dimen/si_space_md"
+        android:enabled="false" />
+</LinearLayout>

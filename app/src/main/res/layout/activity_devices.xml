@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Devices (DESIGN.md): back + "Devices"; "Send to" group; explanation; the coming-soon banner;
+     "On this machine" with one row per device and its switch. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/si_ground"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/si_size_header_height"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/si_size_gutter"
+        android:paddingEnd="@dimen/si_size_gutter">
+
+        <ImageButton
+            android:id="@+id/devicesBack"
+            style="@style/SiIconButton"
+            android:contentDescription="@string/si_back"
+            android:src="@drawable/ic_si_back" />
+
+        <TextView
+            style="@style/SiText.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/si_space_md"
+            android:text="@string/si_devices" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="@dimen/si_size_gutter"
+            android:paddingEnd="@dimen/si_size_gutter"
+            android:paddingBottom="@dimen/si_space_lg">
+
+            <com.limelight.ui.si.SiMaxWidthLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:maxWidth="@dimen/si_size_content_width"
+                android:orientation="vertical">
+
+                <!-- Send to -->
+                <LinearLayout
+                    android:id="@+id/devicesSendTo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/si_space_xs"
+                    android:background="@drawable/si_row_single"
+                    android:clickable="true"
+                    android:defaultFocusHighlightEnabled="false"
+                    android:focusable="true"
+                    android:focusedByDefault="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/si_size_row"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/si_space_md"
+                    android:paddingEnd="@dimen/si_space_md">
+
+                    <TextView
+                        style="@style/SiText.BodyStrong"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/si_send_to" />
+
+                    <ImageView
+                        android:id="@+id/devicesTargetDot"
+                        android:layout_width="@dimen/si_size_status_dot"
+                        android:layout_height="@dimen/si_size_status_dot"
+                        android:layout_marginEnd="6dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/si_dot" />
+
+                    <TextView
+                        android:id="@+id/devicesTargetStatus"
+                        style="@style/SiText.Caption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/si_space_md"
+                        android:textColor="@color/si_muted" />
+
+                    <TextView
+                        android:id="@+id/devicesTarget"
+                        style="@style/SiText.Body"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxWidth="240dp"
+                        android:singleLine="true"
+                        android:textColor="@color/si_muted" />
+
+                    <ImageView
+                        android:layout_width="@dimen/si_size_icon_small"
+                        android:layout_height="@dimen/si_size_icon_small"
+                        android:layout_marginStart="@dimen/si_space_xs"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_si_chevron_right"
+                        android:tint="@color/si_muted" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/SiText.Label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/si_space_md"
+                    android:text="@string/si_devices_intro"
+                    android:textColor="@color/si_muted" />
+
+                <!-- Banner: Android can't send devices yet -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/si_space_md"
+                    android:background="@drawable/si_banner_warning"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/si_space_md">
+
+                    <ImageView
+                        android:layout_width="@dimen/si_size_icon_small"
+                        android:layout_height="@dimen/si_size_icon_small"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_si_warning"
+                        android:tint="@color/si_warning" />
+
+                    <TextView
+                        style="@style/SiText.Body"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/si_space_sm"
+                        android:layout_weight="1"
+                        android:text="@string/si_devices_coming_soon" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/SiSectionLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/si_on_this_machine" />
+
+                <LinearLayout
+                    android:id="@+id/devicesList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </com.limelight.ui.si.SiMaxWidthLayout>
+        </FrameLayout>
+    </ScrollView>
+</LinearLayout>

@@ -107,7 +107,7 @@
     <string name="si_on_this_machine">On this machine</string>
     <string name="si_test_controller">Test Controller</string>
     <string name="si_test_controller_sub">Built in · a virtual gamepad for trying it out</string>
-    <string name="si_device_not_sent">Not sent</string>
+    <string name="si_device_not_sent">Stays on this device</string>
     <string name="si_no_usb_devices">No USB devices plugged in.</string>
     <string name="si_unknown_maker">Unknown maker</string>
 
