@@ -127,8 +127,8 @@
     <string name="si_theme">Theme</string>
     <string name="si_theme_midnight">Midnight Slate</string>
     <string name="si_about_version">Version</string>
-    <string name="si_about_credits_title">Built on Moonlight, Artemis and Apollo</string>
-    <string name="si_about_credits">Stand-In Client is a fork of Artemis, which is built on Moonlight. Stand-In Server is built on Apollo. All are free software under the GNU General Public License v3.</string>
+    <string name="si_about_credits_title">Based on Moonlight, Artemis and Apollo</string>
+    <string name="si_about_credits">Stand-In Client is based on Artemis, which is based on Moonlight. Stand-In Server is based on Apollo. All are free software under the GNU General Public License v3.</string>
     <string name="si_about_license">License</string>
     <string name="si_about_moonlight">Moonlight</string>
     <string name="si_about_moonlight_sub">moonlight-stream.org · GPLv3</string>
