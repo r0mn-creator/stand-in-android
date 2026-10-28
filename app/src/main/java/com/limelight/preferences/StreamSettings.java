@@ -188,8 +188,14 @@ public class StreamSettings extends AppCompatActivity {
             ((TextView) row.findViewById(R.id.siNavText)).setText(CATEGORY_TITLES[i]);
             row.setTag(key);
             if (!twoPane) {
-                // Narrow: the list is the page, full width, each row leads somewhere
+                // Narrow: the list is the page, one group of rows that each lead somewhere
                 row.getLayoutParams().width = ViewGroup.LayoutParams.MATCH_PARENT;
+                row.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                row.setMinimumHeight(Si.dp(this, 56));
+                row.setPadding(Si.dp(this, 16), 0, Si.dp(this, 16), 0);
+                int last = CATEGORY_KEYS.length - 1;
+                row.setBackgroundResource(i == 0 ? R.drawable.si_row_top
+                        : i == last ? R.drawable.si_row_bottom : R.drawable.si_row_middle);
                 row.findViewById(R.id.siNavChevron).setVisibility(View.VISIBLE);
             }
             row.setOnClickListener(v -> selectCategory(key));
