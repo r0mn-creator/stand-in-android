@@ -171,7 +171,7 @@
     <string name="si_manual">Manual</string>
     <string name="si_custom_ellipsis">Custom…</string>
     <string name="si_pref_stats">Show performance stats</string>
-    <string name="si_pref_stats_sub">Frame rate and delay in a corner of the screen.</string>
+    <string name="si_pref_stats_sub">Frame rate, delay and quality in a corner of the screen.</string>
     <string name="si_pref_sound_output">Sound output</string>
     <string name="si_pref_sound_output_sub">Stereo, 5.1 or 7.1 surround.</string>
     <string name="si_pref_host_audio">Play sound on the PC too</string>

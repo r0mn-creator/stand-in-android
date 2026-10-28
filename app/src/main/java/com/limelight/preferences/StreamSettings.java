@@ -339,9 +339,6 @@ public class StreamSettings extends AppCompatActivity {
 
     public static class SettingsFragment extends PreferenceFragmentCompat {
         private static final String CUSTOM_VALUE = "custom";
-        private int nativeResolutionStartIndex = Integer.MAX_VALUE;
-        private boolean nativeFramerateShown = false;
-        private String nativeFramerateValue = null;
 
         private PreferenceConfiguration prevPrefConfig;
         private String category;
@@ -456,79 +453,50 @@ public class StreamSettings extends AppCompatActivity {
             pref.setEntryValues(newValues);
         }
 
-        private void addNativeResolutionEntry(int nativeWidth, int nativeHeight, boolean insetsRemoved, boolean portrait, boolean is_custom) {
+        // Automatic covers this screen's own size and rate, so the lists only gain custom entries
+        // (the desktop lists other screens too; Android settings only see this one)
+        private void addCustomResolutionEntry(int width, int height, boolean portrait) {
             ListPreference pref = (ListPreference) findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING);
 
-            String newName;
-
-            if (insetsRemoved) {
-                newName = getResources().getString(R.string.resolution_prefix_native_fullscreen);
+            String newName = getResources().getString(R.string.resolution_prefix_custom);
+            if (PreferenceConfiguration.isSquarishScreen(width, height)) {
+                newName += " " + getResources().getString(portrait ?
+                        R.string.resolution_prefix_native_portrait : R.string.resolution_prefix_native_landscape);
             }
-            else {
-                newName = is_custom ? getResources().getString(R.string.resolution_prefix_custom) : getResources().getString(R.string.resolution_prefix_native);
-            }
+            newName += " (" + width + " \u00d7 " + height + ")";
 
-            if (PreferenceConfiguration.isSquarishScreen(nativeWidth, nativeHeight)) {
-                if (portrait) {
-                    newName += " " + getResources().getString(R.string.resolution_prefix_native_portrait);
-                }
-                else {
-                    newName += " " + getResources().getString(R.string.resolution_prefix_native_landscape);
-                }
-            }
+            String newValue = width + "x" + height;
 
-            newName += " ("+nativeWidth+"x"+nativeHeight+")";
-
-            String newValue = nativeWidth+"x"+nativeHeight;
-
-            // Check if the native resolution is already present
+            // Don't list a size twice
             for (CharSequence value : pref.getEntryValues()) {
                 if (newValue.equals(value.toString())) {
-                    // It is present in the default list, so don't add it again
                     return;
                 }
-            }
-
-            if (pref.getEntryValues().length < nativeResolutionStartIndex) {
-                nativeResolutionStartIndex = pref.getEntryValues().length;
             }
             appendPreferenceEntry(pref, newName, newValue);
         }
 
-        private void addNativeResolutionEntries(int nativeWidth, int nativeHeight, boolean insetsRemoved, boolean is_custom) {
-            if (PreferenceConfiguration.isSquarishScreen(nativeWidth, nativeHeight)) {
-                addNativeResolutionEntry(nativeHeight, nativeWidth, insetsRemoved, true, is_custom);
+        private void addCustomResolutionEntries(int width, int height) {
+            if (PreferenceConfiguration.isSquarishScreen(width, height)) {
+                addCustomResolutionEntry(height, width, true);
             }
-            addNativeResolutionEntry(nativeWidth, nativeHeight, insetsRemoved, false, is_custom);
+            addCustomResolutionEntry(width, height, false);
         }
 
-        private void addNativeFrameRateEntry(float framerate, boolean is_custom) {
-            if (!is_custom) {
-                framerate = Math.round(framerate);
-                if (framerate == 0) {
-                    return;
-                }
-            }
-
+        private void addCustomFrameRateEntry(float framerate) {
             ListPreference pref = (ListPreference) findPreference(PreferenceConfiguration.FPS_PREF_STRING);
-            String fpsValue = is_custom ? Float.toString(framerate) : Integer.toString(Math.round(framerate));
-            String fpsName = (is_custom ? getResources().getString(R.string.resolution_prefix_custom) : getResources().getString(R.string.resolution_prefix_native)) +
-                    " (" + fpsValue + " " + getResources().getString(R.string.fps_suffix_fps) + ")";
+            String fpsValue = Float.toString(framerate);
+            String fpsName = getResources().getString(R.string.resolution_prefix_custom) +
+                    " (" + fpsValue.replaceAll("\\.0$", "") + " " + getResources().getString(R.string.fps_suffix_fps) + ")";
 
-            // Check if the native frame rate is already present
+            // Don't list a rate twice
             for (CharSequence value : pref.getEntryValues()) {
-                if (fpsValue.equals(value.toString())) {
-                    // It is present in the default list, so don't add it again
-                    nativeFramerateShown = false;
+                if (fpsValue.equals(value.toString()) ||
+                        fpsValue.replaceAll("\\.0$", "").equals(value.toString())) {
                     return;
                 }
             }
-
             appendPreferenceEntry(pref, fpsName, fpsValue);
-            nativeFramerateShown = true;
-            if (!is_custom) {
-                nativeFramerateValue = fpsValue;
-            }
         }
 
         private void removeValue(String preferenceKey, String value, Runnable onMatched) {
@@ -776,7 +744,7 @@ public class StreamSettings extends AppCompatActivity {
                 String[] resolutionSegments = customResStr.split("x");
                 if(resolutionSegments.length == 2){
                     try {
-                        addNativeResolutionEntries(Integer.parseInt(resolutionSegments[0]), Integer.parseInt(resolutionSegments[1]), false, true);
+                        addCustomResolutionEntries(Integer.parseInt(resolutionSegments[0]), Integer.parseInt(resolutionSegments[1]));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -789,7 +757,7 @@ public class StreamSettings extends AppCompatActivity {
                 try {
                     float customRefreshRateValue = Float.parseFloat(customRefreshRateStr);
                     if (customRefreshRateValue > 0) {
-                        addNativeFrameRateEntry(customRefreshRateValue, true);
+                        addCustomFrameRateEntry(customRefreshRateValue);
                     }
                 } catch (NumberFormatException e) {
                     getPrefs().edit().remove(PreferenceConfiguration.CUSTOM_REFRESH_RATE_PREF_STRING).apply();
@@ -802,38 +770,6 @@ public class StreamSettings extends AppCompatActivity {
             // Hide non-supported resolution/FPS combinations
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 int maxSupportedResW = 0;
-
-                // Add a native resolution with any insets included for users that don't want content
-                // behind the notch of their display
-                boolean hasInsets = false;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    DisplayCutout cutout;
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        // Use the much nicer Display.getCutout() API on Android 10+
-                        cutout = display.getCutout();
-                    }
-                    else {
-                        // Android 9 only
-                        cutout = displayCutoutP;
-                    }
-
-                    if (cutout != null) {
-                        int widthInsets = cutout.getSafeInsetLeft() + cutout.getSafeInsetRight();
-                        int heightInsets = cutout.getSafeInsetBottom() + cutout.getSafeInsetTop();
-
-                        if (widthInsets != 0 || heightInsets != 0) {
-                            DisplayMetrics metrics = new DisplayMetrics();
-                            display.getRealMetrics(metrics);
-
-                            int width = Math.max(metrics.widthPixels - widthInsets, metrics.heightPixels - heightInsets);
-                            int height = Math.min(metrics.widthPixels - widthInsets, metrics.heightPixels - heightInsets);
-
-                            addNativeResolutionEntries(width, height, false, false);
-                            hasInsets = true;
-                        }
-                    }
-                }
 
                 // Always allow resolutions that are smaller or equal to the active
                 // display resolution because decoders can report total non-sense to us.
@@ -849,13 +785,6 @@ public class StreamSettings extends AppCompatActivity {
 
                     int width = Math.max(candidate.getPhysicalWidth(), candidate.getPhysicalHeight());
                     int height = Math.min(candidate.getPhysicalWidth(), candidate.getPhysicalHeight());
-
-                    // Some TVs report strange values here, so let's avoid native resolutions on a TV
-                    // unless they report greater than 4K resolutions.
-                    if (!activity.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) ||
-                            (width > 3840 || height > 2160)) {
-                        addNativeResolutionEntries(width, height, hasInsets, false);
-                    }
 
                     if ((width >= 3840 || height >= 2160) && maxSupportedResW < 3840) {
                         maxSupportedResW = 3840;
@@ -935,15 +864,6 @@ public class StreamSettings extends AppCompatActivity {
                     // Never remove 720p
                 }
             }
-            else {
-                // We can get the true metrics via the getRealMetrics() function (unlike the lies
-                // that getWidth() and getHeight() tell to us).
-                DisplayMetrics metrics = new DisplayMetrics();
-                display.getRealMetrics(metrics);
-                int width = Math.max(metrics.widthPixels, metrics.heightPixels);
-                int height = Math.min(metrics.widthPixels, metrics.heightPixels);
-                addNativeResolutionEntries(width, height, false, false);
-            }
 
             if (!PreferenceConfiguration.readPreferences(this.getActivity()).unlockFps) {
                 // We give some extra room in case the FPS is rounded down
@@ -956,7 +876,24 @@ public class StreamSettings extends AppCompatActivity {
                 }
                 // Never remove 30 FPS or 60 FPS
             }
-            addNativeFrameRateEntry(maxSupportedFps, false);
+
+            // A fixed value that isn't in the lists (an old native entry, a profile) still shows,
+            // as on the desktop
+            String currentRes = getPrefs().getString(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION);
+            String[] currentSize = currentRes.split("x");
+            if (currentSize.length == 2) {
+                try {
+                    addCustomResolutionEntry(Integer.parseInt(currentSize[0]), Integer.parseInt(currentSize[1]), false);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            String currentFps = getPrefs().getString(PreferenceConfiguration.FPS_PREF_STRING, PreferenceConfiguration.DEFAULT_FPS);
+            if (!PreferenceConfiguration.AUTO_VALUE.equals(currentFps)) {
+                try {
+                    addCustomFrameRateEntry(Float.parseFloat(currentFps));
+                } catch (NumberFormatException ignored) {
+                }
+            }
 
             // "Custom…" ends both lists, as on the desktop
             appendPreferenceEntry((ListPreference) findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING),
@@ -1031,25 +968,6 @@ public class StreamSettings extends AppCompatActivity {
                         return false;
                     }
 
-                    // Detect if this value is the native resolution option
-                    CharSequence[] values = ((ListPreference)preference).getEntryValues();
-                    boolean isNativeRes = true;
-                    for (int i = 0; i < values.length; i++) {
-                        // Look for a match prior to the start of the native resolution entries
-                        if (valueStr.equals(values[i].toString()) && i < nativeResolutionStartIndex) {
-                            isNativeRes = false;
-                            break;
-                        }
-                    }
-
-                    // If this is native resolution, show the warning dialog
-                    if (isNativeRes) {
-                        Dialog.displayDialog(getActivity(),
-                                getResources().getString(R.string.title_native_res_dialog),
-                                getResources().getString(R.string.text_native_res_dialog),
-                                false);
-                    }
-
                     // Write the new bitrate value
                     resetBitrateToDefault(prefs, valueStr, null);
                     updateStreamRows(valueStr, null, null);
@@ -1068,14 +986,6 @@ public class StreamSettings extends AppCompatActivity {
                     if (CUSTOM_VALUE.equals(valueStr)) {
                         openCustomInput(PreferenceConfiguration.CUSTOM_REFRESH_RATE_PREF_STRING);
                         return false;
-                    }
-
-                    // If this is native frame rate, show the warning dialog
-                    if (nativeFramerateShown && valueStr.equals(nativeFramerateValue)) {
-                        Dialog.displayDialog(getActivity(),
-                                getResources().getString(R.string.title_native_fps_dialog),
-                                getResources().getString(R.string.text_native_res_dialog),
-                                false);
                     }
 
                     // Write the new bitrate value

@@ -14,7 +14,8 @@ import androidx.preference.PreferenceViewHolder;
 
 import com.limelight.R;
 
-import java.util.Locale;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 // Based on a Stack Overflow example: http://stackoverflow.com/questions/1974193/slider-on-my-preferencescreen
 public class SeekBarPreference extends Preference
@@ -83,7 +84,9 @@ public class SeekBarPreference extends Preference
     private String formatValue(int value) {
         String t;
         if (divisor != 1) {
-            t = String.format((Locale)null, "%.1f", value / (float)divisor);
+            // Whole numbers without decimals, halves as "20.5", as on the desktop
+            t = new BigDecimal(value).divide(new BigDecimal(divisor), 3, RoundingMode.HALF_UP)
+                    .stripTrailingZeros().toPlainString();
         }
         else {
             t = String.valueOf(value);
@@ -178,15 +181,7 @@ public class SeekBarPreference extends Preference
                     return;
                 }
 
-                String t;
-                if (divisor != 1) {
-                    float floatValue = roundedValue / (float)divisor;
-                    t = String.format((Locale)null, "%.1f", floatValue);
-                }
-                else {
-                    t = String.valueOf(value);
-                }
-                valueText.setText(suffix == null ? t : t.concat(suffix.length() > 1 ? " "+suffix : suffix));
+                valueText.setText(formatValue(roundedValue));
             }
 
             @Override
