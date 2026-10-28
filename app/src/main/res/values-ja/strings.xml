@@ -91,7 +91,6 @@
     <string name="summary_checkbox_show_onscreen_controls">タッチスクリーン上にオンスクリーンコントローラを表示します</string>
     <string name="category_ui_settings">インターフェース</string>
     <string name="title_language_list">言語</string>
-    <string name="summary_language_list">Moonlightで使用する言語</string>
     <string name="title_checkbox_small_icon_mode">小さなアイコン</string>
     <string name="summary_checkbox_small_icon_mode">グリッドで小さなアイコンを使用します</string>
     <string name="category_host_settings">ホスト</string>

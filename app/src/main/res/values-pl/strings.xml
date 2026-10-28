@@ -94,7 +94,6 @@
     <string name="title_checkbox_enable_pip">Włącz tryb obserwatora obrazu w obrazie</string>
     <string name="summary_reset_osc">Przywraca domyślny rozmiar i położenie wszystkich elementów sterujących na ekranie</string>
     <string name="title_language_list">Język</string>
-    <string name="summary_language_list">Język używany w Moonlight</string>
     <string name="category_host_settings">Ustawienia hosta</string>
     <string name="summary_checkbox_small_icon_mode">Mniejsze ramki w siatce aplikacji pozwalają na wyświetlanie większej liczby aplikacji na ekranie</string>
     <string name="title_checkbox_enable_sops">Optymalizacja ustawień gry</string>
@@ -120,8 +119,6 @@
     <string name="summary_full_range">Spowoduje to utratę szczegółów w jasnych i ciemnych obszarach, jeśli urządzenie nie wyświetla prawidłowo treści wideo w pełnym zakresie.</string>
     <string name="summary_enable_post_stream_toast">Wyświetlanie komunikatu informującego o opóźnieniu po zakończeniu strumienia</string>
     <string name="title_setup_guide">Instrukcja konfiguracji</string>
-    <string name="title_privacy_policy">Polityka prywatności</string>
-    <string name="summary_privacy_policy">Zobacz politykę prywatności Moonlight</string>
     <string name="resolution_360p">360p</string>
     <string name="resolution_720p">720p</string>
     <string name="toast_controller_type_changed">Typ gamepada może zostać zmieniony z powodu emulacji czujnika ruchu</string>

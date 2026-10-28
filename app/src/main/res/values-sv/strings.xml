@@ -145,7 +145,6 @@
     <string name="suffix_osc_opacity">%</string>
     <string name="title_checkbox_enable_pip">Sätt på bild-i-bild-observatörsläge</string>
     <string name="title_language_list">Språk</string>
-    <string name="summary_language_list">Språk att använda för Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Använd liten omslagskonst</string>
     <string name="summary_checkbox_small_icon_mode">Mindre lådor i appgallret gör att fler appar syns på skärmen</string>
     <string name="category_host_settings">Värdinställningar</string>
@@ -172,8 +171,6 @@
     <string name="title_setup_guide">Installationsguide</string>
     <string name="title_troubleshooting">Vägledning för felsökning</string>
     <string name="summary_troubleshooting">Visa gissningar för att utvärdera och åtgärda vanliga strömningsbeskymmer</string>
-    <string name="title_privacy_policy">Integritetspolicy</string>
-    <string name="summary_privacy_policy">Visa Moonlights integritetspolicy</string>
     <string name="resolution_360p">360p</string>
     <string name="resolution_480p">480p</string>
     <string name="resolution_720p">720p</string>

@@ -114,7 +114,6 @@
     <string name="summary_checkbox_flip_face_buttons">Меняет местами кнопки A/B и X/Y на геймпадах и экранных кнопках</string>
     <string name="category_ui_settings">Настройки интерфейса</string>
     <string name="title_language_list">Язык</string>
-    <string name="summary_language_list">Язык, который будет использоваться в Artemis</string>
     <string name="title_checkbox_small_icon_mode">Использовать маленькие иконки</string>
     <string name="summary_checkbox_small_icon_mode">Использовать маленькие иконки в сетке для отображения большего числа элементов на экране</string>
     <string name="category_host_settings">Настройки хоста</string>
@@ -139,7 +138,6 @@
     <string name="help_loading_msg">Загрузка страницы помощи…</string>
     <string name="pair_already_in_progress">Сопряжение уже в процессе</string>
     <string name="help">Помощь</string>
-    <string name="toast_no_logs">Данные о производительности отсутствуют.</string>
     <string name="applist_connect_msg">Подключение к ПК…</string>
     <string name="title_decoding_error">Сбой декодирования видео</string>
     <string name="message_decoding_error">Artemis произошел сбой из-за несовместимости с видеодекодером этого устройства. Попробуйте изменить настройки потоковой передачи, если сбои продолжаются.</string>
@@ -258,8 +256,6 @@
     <string name="summary_setup_guide">Посмотреть инструкцию о том как настроить ваш ПК для стриминга</string>
     <string name="title_troubleshooting">Руководство по устранению неполадок</string>
     <string name="summary_frame_pacing">Укажите, как сбалансировать задержку и плавность видеосигнала</string>
-    <string name="summary_privacy_policy">Посмотреть политику конфиденциальности Artemis</string>
-    <string name="title_privacy_policy">Политика конфиденциальности</string>
     <string name="resolution_360p">360p</string>
     <string name="resolution_1080p">1080p</string>
     <string name="resolution_1440p">1440p</string>
@@ -283,7 +279,6 @@
     <string name="suffix_seekbar_vibrate_fallback_strength">%</string>
     <string name="title_full_range">Принудительное полнодиапазонное видео (Экспериментальное)</string>
     <string name="summary_full_range">Это приведет к потере детализации в светлых и темных областях, если ваше устройство не отображает видеоконтент в полном диапазоне должным образом.</string>
-    <string name="title_performance_link">Панель производительности</string>
     <string name="toast_controller_type_changed">Тип геймпада может быть изменен из-за эмуляции датчика движения</string>
     <string name="videoformat_av1always">Предпочитать AV1 (Экспериментальный)</string>
     <string name="pan_zoom_mode_disabled">Режим прокрутки/масш. выключен</string>
@@ -320,9 +315,6 @@
     <string name="pair_otp_pairing_msg">Сопряжение, подождите…</string>
     <string name="pair_passphrase_hint">Пароль</string>
     <string name="pair_pin_length_msg">PIN должен состоять из 4 цифр</string>
-    <string name="email_subject">Artemistics - журнал производительности</string>
-    <string name="email_chooser_title">Отправить журнал производительности...</string>
-    <string name="toast_no_email_clients">Почтовые клиенты не установлены.</string>
     <string name="applist_menu_start_vdisplay">Запустить в виртуальном дисплее</string>
     <string name="applist_menu_quit_and_start_vdisplay">Завершить игру и запустить в виртуальном дисплее</string>
     <string name="category_general_settings">Общие настройки</string>
@@ -337,9 +329,6 @@
     <string name="title_checkbox_force_device_motion">Всегда использовать датчики движения устройства.</string>
     <string name="title_hide_osc_when_has_gamepad">Скрывать экранные кнопки при использовании контроллера</string>
     <string name="title_show_guide_button">Показать кнопку Guide</string>
-    <string name="title_special_key_help">Помощь по пользовательским клавишам</string>
-    <string name="summary_special_key_help">Инструкция по настройке пользовательских спец-клавиш</string>
-    <string name="summary_performance_link">Просмотреть производительность других устройств.\nОбратите внимание, эти данные поддерживаются сообществом, они не поддерживаются Artemis и не представляют Artemis официально.</string>
     <string name="pacing_warp">Warp Drive (экспериментально)</string>
     <string name="keyboard_service_label">Физическая клавиатура Artemis</string>
     <string name="accessibility_description_text">Используется, если системные сочетания физической клавиатуры перехватываются Android. В таких случаях некоторые сочетания не проходят на хост-ПК. Artemis не просматривает ваш ввод и не собирает пароли, номера карт или другую личную информацию.</string>
@@ -410,12 +399,6 @@
     <string name="summary_auto_orientation">Экран стрима будет соответствовать ориентации устройства при запуске.</string>
     <string name="title_import_special_button">Импорт пользовательских клавиш</string>
     <string name="summary_import_special_button">Доступно в меню Back меню и спец-клавишах.\nВнимание: импорт перезапишет текущую конфигурацию - сделайте резервную копию.</string>
-    <string name="summary_share_performance_logs">Поделиться данными о производительности с друзьями/сообществом</string>
-    <string name="title_share_performance_logs_button">Поделиться логами производительности</string>
-    <string name="title_software_update">Обновление ПО</string>
-    <string name="summary_software_update">Artemis Nior от ClassicOldSong — смотрите релизы на GitHub для последней версии</string>
-    <string name="title_follow_update">Следить за обновлениями</string>
-    <string name="summary_follow_update">Следите за обновлениями Artemis через Obtainium</string>
     <string name="title_special_key_layout">Раскладка спец-клавиш</string>
     <string name="title_show_virtual_key">Показать виртуальные клавиши на экране</string>
     <string name="summary_show_virtual_key">Отобразить слой виртуальных спец-клавиш на тачскрине.\nНепрозрачность клавиш общая с виртуальным геймпадом.</string>
@@ -645,7 +628,6 @@
     <string name="rename">Переименовать</string>
     <string name="save">Сохранить</string>
     <string name="perf_overlay_drawdelay">" Задержка: %1$.2f мс"</string>
-    <string name="email_prefix_message">"\n        Пожалуйста отправьте это письмо как есть на artemistics.logs@gmail.com чтобы поддержать сообщество. \n\n        Ваши данные о производительности помогут улучшить и расширить набор данных по ссылке: \n\n        https://tinyurl.com/artemis-performance       "</string>
     <string name="title_checkbox_remember_mouse_mode">Запоминать режим мыши</string>
     <string name="title_enable_rumble">Включить вибрацию</string>
     <string name="title_prevent_packet_loss">Предотвращать потерю пакетов</string>

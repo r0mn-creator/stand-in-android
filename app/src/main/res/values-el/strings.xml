@@ -106,7 +106,6 @@
     <string name="title_checkbox_enable_pip">Ενεργοποίηση της λειτουργίας παρατηρητή εικόνας μέσα σε εικόνα</string>
     <string name="summary_checkbox_enable_pip">Επιτρέπει την προβολή της ροής (αλλά όχι τον έλεγχο) κατά την εκτέλεση πολλαπλών εργασιών</string>
     <string name="title_language_list">Γλώσσα</string>
-    <string name="summary_language_list">Γλώσσα που χρησιμοποιείται για το Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Χρησιμοποιήστε μικρά κουτιά</string>
     <string name="scut_not_paired">Ο υπολογιστής δεν έχει συζευχθεί</string>
     <string name="pcview_menu_header_offline">Εκτός σύνδεσης</string>

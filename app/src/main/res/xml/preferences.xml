@@ -905,16 +905,6 @@
                 android:key="checkbox_enable_perf_logging"
                 android:summary="@string/summary_checkbox_enable_perf_logging"
                 android:title="@string/title_checkbox_enable_perf_logging" />
-            <Preference
-                android:key="share_performance_logs"
-                android:summary="@string/summary_share_performance_logs"
-                android:title="@string/title_share_performance_logs_button"
-                android:dependency="checkbox_enable_perf_logging" />
-            <com.limelight.preferences.WebLauncherPreference
-                url="https://github.com/ClassicOldSong/moonlight-android/wiki/Performance-Statistics-Collection"
-                android:key="option_view_shared_pref_logs"
-                android:summary="@string/summary_performance_link"
-                android:title="@string/title_performance_link" />
         </PreferenceCategory>
         <PreferenceCategory
             android:key="category_settings_misc"
@@ -923,11 +913,6 @@
                 android:key="import_special_button_file"
                 android:summary="@string/summary_import_special_button"
                 android:title="@string/title_import_special_button" />
-            <com.limelight.preferences.WebLauncherPreference
-                url="https://github.com/ClassicOldSong/moonlight-android/wiki/Custom-Special-Keys"
-                android:key="option_help_custom_keys"
-                android:summary="@string/summary_special_key_help"
-                android:title="@string/title_special_key_help" />
             <Preference
                 android:key="pref_debug_info"
                 android:summary="@string/summary_debug_info"

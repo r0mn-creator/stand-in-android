@@ -190,8 +190,6 @@
     <string name="summary_unlock_fps">Streamování v 90 nebo 120 FPS může snížit zpoždění na dražších zařízeních, ale může způsobit zasekávání nebo nestabilitu na zařízeních, které je nepodporují</string>
     <string name="title_enable_post_stream_toast">Zobrazit informace o zpoždění po streamování</string>
     <string name="summary_enable_post_stream_toast">Zobrazit informace o zpoždění po skončení streamování</string>
-    <string name="title_privacy_policy">Zásady ochrany osobních údajů</string>
-    <string name="summary_privacy_policy">Zobrazit zásady ochrany osobních údajů Moonlightu</string>
     <string name="resolution_360p">360p</string>
     <string name="resolution_480p">480p</string>
     <string name="pacing_balanced_alt">Vyvážené s limitem FPS</string>
@@ -232,7 +230,6 @@
     <string name="title_only_l3r3">Zobrazit pouze L3 a R3</string>
     <string name="summary_checkbox_enable_pip">Umožní, aby byl stream sledován (ale ne ovládá) během multitaskingu</string>
     <string name="title_language_list">Jazyk</string>
-    <string name="summary_language_list">Jazyk, který bude Moonlight používat</string>
     <string name="title_checkbox_small_icon_mode">Použít malý box art</string>
     <string name="summary_checkbox_small_icon_mode">Díky menšímu box artu v seznamu aplikací uvidíte na obrazovce více aplikací naráz</string>
     <string name="category_host_settings">Nastavení hostitele</string>

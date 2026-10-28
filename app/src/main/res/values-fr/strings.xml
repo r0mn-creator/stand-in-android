@@ -254,7 +254,6 @@
     <string name="title_checkbox_enable_pip">Activer le mode observateur Picture-in-Picture</string>
     <string name="summary_checkbox_enable_pip">Permet de visualiser le flux (sans le contrôler) tout en utilisant une autre application</string>
     <string name="title_language_list">Langue</string>
-    <string name="summary_language_list">Langue à utiliser pour Artemis</string>
     <string name="title_checkbox_small_icon_mode">Utiliser des petites icônes</string>
     <string name="summary_checkbox_small_icon_mode">Des icônes plus petites permettent d\'afficher plus d\'applications en même temps</string>
 
@@ -289,10 +288,6 @@
     <string name="summary_setup_guide">Voir les instructions sur la façon de configurer votre PC de jeu pour le streaming</string>
     <string name="title_troubleshooting">Guide de dépannage</string>
     <string name="summary_troubleshooting">Voir des conseils pour diagnostiquer et résoudre les problèmes de streaming courants</string>
-    <string name="title_privacy_policy">Politique de confidentialité</string>
-    <string name="summary_privacy_policy">Voir la politique de confidentialité d\'Artemis</string>
-    <string name="title_special_key_help">Aide sur les touches spéciales personnalisées</string>
-    <string name="summary_special_key_help">Instructions sur la configuration des touches spéciales personnalisées</string>
 
     <!-- Toasts -->
     <string name="toast_controller_type_changed">Le type de manette peut être différent en raison de l\'émulation du capteur de mouvement</string>
@@ -408,10 +403,6 @@
     <string name="summary_auto_orientation">L\'écran de streaming sera affiché selon l\'orientation de l\'appareil lorsque le streaming commence.</string>
     <string name="title_import_special_button">Importer des touches spéciales personnalisées</string>
     <string name="summary_import_special_button">Disponible dans le menu Retour et les touches spéciales.\nRemarque : l\'importation écrasera la configuration actuelle, veuillez sauvegarder en conséquence.</string>
-    <string name="title_software_update">Mise à jour du logiciel</string>
-    <string name="summary_software_update">Version Artemis Nior par ClassicOldSong - Visitez la page des versions GitHub pour obtenir la dernière version</string>
-    <string name="title_follow_update">Suivre les mises à jour</string>
-    <string name="summary_follow_update">Suivre les mises à jour d\'Artemis avec Obtainium</string>
     <string name="title_special_key_layout">Disposition des touches spéciales</string>
     <string name="title_show_virtual_key">Afficher les touches virtuelles à l\'écran</string>
     <string name="summary_show_virtual_key">Affiche une couche de touches spéciales virtuelles sur l\'écran tactile.\nL\'opacité des touches est partagée avec la manette virtuelle ci-dessus.</string>

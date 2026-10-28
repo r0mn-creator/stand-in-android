@@ -55,7 +55,6 @@
     <string name="title_checkbox_host_audio">Spill lyd på PC</string>
     <string name="title_checkbox_enable_sops">Optimaliser spillinnstillinger</string>
     <string name="category_host_settings">Vertsinnstillinger</string>
-    <string name="summary_language_list">Språk brukt i Moonlight</string>
     <string name="title_language_list">Språk</string>
     <string name="category_ui_settings">Grensesnittsinnstillinger</string>
     <string name="suffix_osc_opacity">%</string>

@@ -293,10 +293,6 @@ public class EditProfileActivity extends AppCompatActivity {
             if (_pref != null) {
                 _pref.setVisible(false);
             }
-            _pref = findPreference("option_help_custom_keys");
-            if (_pref != null) {
-                _pref.setVisible(false);
-            }
 
             // Highlight changed preferences
             java.util.Map<String, ?> patch = diff(

@@ -200,7 +200,6 @@
     <string name="summary_reset_osc">Redefine todos os controles no ecrã para tamanho e posição padrão dele</string>
     <string name="summary_osc_opacity">Deixe os controles de ecrã mais/menos transparentes</string>
     <string name="title_language_list">Idioma</string>
-    <string name="summary_language_list">Idioma para ser usado no Moonlight</string>
     <string name="title_checkbox_small_icon_mode">Mostrar ícones menores</string>
     <string name="summary_checkbox_enable_sops">Permitir que o GFE modifique as configurações do jogo para otimizar a transmissão</string>
     <string name="title_checkbox_host_audio">Reproduzir áudio no PC</string>
@@ -243,8 +242,6 @@
     <string name="title_checkbox_mouse_nav_buttons">Ativar os botões de voltar e avançar do rato</string>
     <string name="summary_checkbox_mouse_nav_buttons">Ativar esta opção pode bugar o clique com o botão direito em alguns aparelhos com bugs</string>
     <string name="title_checkbox_flip_face_buttons">Inverter botões</string>
-    <string name="title_privacy_policy">Política de privacidade</string>
-    <string name="summary_privacy_policy">Veja a política de privacidade do Moonlight</string>
     <string name="resolution_480p">480p</string>
     <string name="resolution_720p">720p</string>
     <string name="summary_frame_pacing">Especifique o equilíbrio entre latência e suavidade do vídeo</string>

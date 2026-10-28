@@ -260,7 +260,6 @@
     <string name="title_checkbox_enable_pip">Bật chế độ Picture-in-Picture</string>
     <string name="summary_checkbox_enable_pip">Cho phép xem luồng trong khi thực hiện đa nhiệm</string>
     <string name="title_language_list">Ngôn ngữ</string>
-    <string name="summary_language_list">Ngôn ngữ sử dụng cho Artemis</string>
     <string name="title_checkbox_small_icon_mode">Chế độ biểu tượng nhỏ</string>
     <string name="summary_checkbox_small_icon_mode">Hiển thị biểu tượng nhỏ hơn trong lưới ứng dụng để hiển thị nhiều ứng dụng hơn</string>
 
@@ -295,10 +294,6 @@
     <string name="summary_setup_guide">Xem hướng dẫn về cách thiết lập PC chơi game của bạn để phát trực tuyến</string>
     <string name="title_troubleshooting">Hướng dẫn khắc phục sự cố</string>
     <string name="summary_troubleshooting">Xem các mẹo để chẩn đoán và khắc phục các sự cố phát trực tuyến phổ biến</string>
-    <string name="title_privacy_policy">Chính sách quyền riêng tư</string>
-    <string name="summary_privacy_policy">Xem chính sách quyền riêng tư của Artemis</string>
-    <string name="title_special_key_help">Trợ giúp phím đặc biệt</string>
-    <string name="summary_special_key_help">Hướng dẫn về cách thiết lập các phím đặc biệt tùy chỉnh</string>
 
     <!-- Toasts -->
     <string name="toast_controller_type_changed">Loại gamepad có thể đã thay đổi do mô phỏng cảm biến chuyển động</string>
@@ -432,8 +427,6 @@
     <string name="title_import_special_button">Nhập phím tùy chỉnh</string>
     <string name="summary_import_special_button">Sử dụng được trong Menu Quay lại và phím đặc biệt.\nLưu ý: Nhập sẽ ghi đè cấu hình hiện tại, vui lòng sao lưu trước.</string>
 
-    <string name="title_software_update">Cập nhật phần mềm</string>
-    <string name="summary_software_update">Phiên bản Artemis Việt Hóa bởi ZeronX - Truy cập GitHub Release để nhận phiên bản mới nhất</string>
 
     <string name="title_special_key_layout">Bố cục phím đặc biệt</string>
 

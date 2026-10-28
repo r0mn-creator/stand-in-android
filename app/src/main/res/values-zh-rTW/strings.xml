@@ -136,17 +136,7 @@
 	<string name="perf_overlay_drawdelay">延遲：%1$.2f ms</string>
 
 	<!-- Performance Report Sharing -->
-	<string name="email_prefix_message">
-		請將此電子郵件原樣發送至 artemistics.logs@gmail.com 以支持社群。\n
-		您分享的效能數據將有助於改善並擴充資料集，該資料集可在以下位置取得：\n
-		https://tinyurl.com/artemis-performance\n\n
-	</string>
 
-	<string name="email_recipient">artemistics.logs@gmail.com</string>
-	<string name="email_subject">Artemistics - 效能日誌</string>
-	<string name="email_chooser_title">傳送效能日誌...</string>
-	<string name="toast_no_email_clients">未安裝電子郵件用戶端。</string>
-	<string name="toast_no_logs">尚未儲存任何效能數據。</string>
 
 	<!-- AppList activity -->
 	<string name="applist_connect_msg">正在連線至電腦…</string>
@@ -283,7 +273,6 @@
 	<string name="title_checkbox_enable_pip">啟用子母畫面旁觀模式</string>
 	<string name="summary_checkbox_enable_pip">允許在多工時觀看串流（不可控制）</string>
 	<string name="title_language_list">語言</string>
-	<string name="summary_language_list">Artemis 使用的語言</string>
 	<string name="title_checkbox_small_icon_mode">使用小型封面圖</string>
 	<string name="summary_checkbox_small_icon_mode">在應用程式格狀檢視中使用較小封面圖，可在同一畫面顯示更多應用程式</string>
 
@@ -320,12 +309,6 @@
 	<string name="summary_setup_guide">檢視如何設定您的遊戲電腦以進行串流的指引</string>
 	<string name="title_troubleshooting">疑難排解指南</string>
 	<string name="summary_troubleshooting">檢視診斷與修復常見串流問題的提示</string>
-	<string name="title_privacy_policy">隱私權政策</string>
-	<string name="summary_privacy_policy">檢視 Artemis 的隱私權政策</string>
-	<string name="title_special_key_help">自訂按鍵說明</string>
-	<string name="summary_special_key_help">有關如何設定自訂特殊按鍵的指引</string>
-	<string name="summary_performance_link">查看其他裝置的效能。\n請注意，這些資料由社群管理，非由 Artemis 官方管理，也不代表 Artemis 的官方立場。</string>
-	<string name="title_performance_link">效能儀表板</string>
 
 	<!-- Toasts -->
 	<string name="toast_controller_type_changed">因陀螺儀模擬，手把類型可能已變更</string>
@@ -487,14 +470,8 @@
 	<string name="title_import_special_button">匯入自訂按鍵</string>
 	<string name="summary_import_special_button">可於返回選單與特殊按鍵中使用。\n注意：匯入會覆寫目前設定，請先備份。</string>
 
-	<string name="summary_share_performance_logs">與朋友或社群分享您的效能資料</string>
-	<string name="title_share_performance_logs_button">分享效能日誌</string>
 
-	<string name="title_software_update">軟體更新</string>
-	<string name="summary_software_update">Artemis Nior 版本（ClassicOldSong）－前往 GitHub Releases 取得最新版本</string>
 
-	<string name="title_follow_update">追蹤更新</string>
-	<string name="summary_follow_update">使用 Obtainium 追蹤 Artemis 更新</string>
 
 	<string name="title_special_key_layout">特殊按鍵佈局</string>
 	<string name="title_show_virtual_key">在螢幕上顯示虛擬按鍵</string>
