@@ -21,6 +21,7 @@ public class StreamConfiguration {
     private boolean sops;
     private boolean enableAdaptiveResolution;
     private boolean playLocalAudio;
+    private boolean autoBitrate = true;
     private int maxPacketSize;
     private int remote;
     private MoonBridge.AudioConfiguration audioConfiguration;
@@ -91,6 +92,12 @@ public class StreamConfiguration {
             return this;
         }
         
+        /** Stand-In: let the server adjust the bitrate to the network while streaming. */
+        public StreamConfiguration.Builder setAutoBitrate(boolean enable) {
+            config.autoBitrate = enable;
+            return this;
+        }
+
         public StreamConfiguration.Builder setMaxPacketSize(int maxPacketSize) {
             config.maxPacketSize = maxPacketSize;
             return this;
@@ -221,6 +228,10 @@ public class StreamConfiguration {
     
     public boolean getPlayLocalAudio() {
         return playLocalAudio;
+    }
+
+    public boolean getAutoBitrate() {
+        return autoBitrate;
     }
     
     public int getRemote() {

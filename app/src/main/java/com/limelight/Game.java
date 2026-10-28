@@ -409,6 +409,11 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
             prefConfig.width = displayWidth;
             prefConfig.height = displayHeight;
             prefConfig.fps = currentMode.getRefreshRate();
+            if (prefConfig.autoBitrate) {
+                // Automatic quality starts from the default for what this display streams
+                prefConfig.bitrate = PreferenceConfiguration.getDefaultBitrate(
+                        displayWidth + "x" + displayHeight, Float.toString(prefConfig.fps));
+            }
             prefConfig.videoScaleMode = PreferenceConfiguration.ScaleMode.STRETCH;
             prefConfig.enableFloatingButton = false;
             prefConfig.showOverlayZoomToggleButton = false;
@@ -789,6 +794,7 @@ public class Game extends AppCompatActivity implements SurfaceHolder.Callback,
                 .setApp(app)
                 .setEnableUltraLowLatency(prefConfig.enableUltraLowLatency)
                 .setBitrate(isMetered ? prefConfig.meteredBitrate: prefConfig.bitrate)
+                .setAutoBitrate(prefConfig.autoBitrate)
                 .setEnableSops(prefConfig.enableSops)
                 .enableLocalAudioPlayback(prefConfig.playHostAudio)
                 .setMaxPacketSize(1392)

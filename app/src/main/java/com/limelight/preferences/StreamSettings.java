@@ -338,8 +338,10 @@ public class StreamSettings extends AppCompatActivity {
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat {
+        private static final String CUSTOM_VALUE = "custom";
         private int nativeResolutionStartIndex = Integer.MAX_VALUE;
         private boolean nativeFramerateShown = false;
+        private String nativeFramerateValue = null;
 
         private PreferenceConfiguration prevPrefConfig;
         private String category;
@@ -524,6 +526,9 @@ public class StreamSettings extends AppCompatActivity {
 
             appendPreferenceEntry(pref, fpsName, fpsValue);
             nativeFramerateShown = true;
+            if (!is_custom) {
+                nativeFramerateValue = fpsValue;
+            }
         }
 
         private void removeValue(String preferenceKey, String value, Runnable onMatched) {
@@ -562,18 +567,85 @@ public class StreamSettings extends AppCompatActivity {
             pref.setEntryValues(entryValues);
         }
 
+        // Automatic quality follows the resolution and frame rate; Manual stays where the user set it
         private void resetBitrateToDefault(SharedPreferences prefs, String res, String fps) {
+            if (!PreferenceConfiguration.isAutoBitrate(prefs)) {
+                return;
+            }
             if (res == null) {
                 res = prefs.getString(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION);
             }
             if (fps == null) {
                 fps = prefs.getString(PreferenceConfiguration.FPS_PREF_STRING, PreferenceConfiguration.DEFAULT_FPS);
             }
+            Context context = requireContext();
 
             prefs.edit()
                     .putInt(PreferenceConfiguration.BITRATE_PREF_STRING,
-                            PreferenceConfiguration.getDefaultBitrate(res, fps))
+                            PreferenceConfiguration.getDefaultBitrate(
+                                    PreferenceConfiguration.resolveResolution(context, res),
+                                    PreferenceConfiguration.resolveFps(context, fps)))
                     .apply();
+        }
+
+        /**
+         * Subtitles for Resolution, Frame rate and Quality follow their value (DESIGN.md
+         * "It just works"), and the Bitrate slider shows only for Manual quality. Null means
+         * "the stored value".
+         */
+        private void updateStreamRows(String res, String fps, String quality) {
+            SharedPreferences prefs = getPrefs();
+            Context context = requireContext();
+            if (res == null) {
+                res = prefs.getString(PreferenceConfiguration.RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION);
+            }
+            if (fps == null) {
+                fps = prefs.getString(PreferenceConfiguration.FPS_PREF_STRING, PreferenceConfiguration.DEFAULT_FPS);
+            }
+            if (quality == null) {
+                quality = prefs.getString(PreferenceConfiguration.QUALITY_PREF_STRING, PreferenceConfiguration.DEFAULT_QUALITY);
+            }
+
+            Preference resPref = findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING);
+            if (resPref != null) {
+                if (PreferenceConfiguration.AUTO_VALUE.equals(res)) {
+                    String[] size = PreferenceConfiguration.resolveResolution(context, res).split("x");
+                    resPref.setSummary(getString(R.string.si_pref_resolution_auto_sub,
+                            Integer.parseInt(size[0]), Integer.parseInt(size[1])));
+                }
+                else {
+                    resPref.setSummary(R.string.si_pref_resolution_sub);
+                }
+            }
+
+            Preference fpsPref = findPreference(PreferenceConfiguration.FPS_PREF_STRING);
+            if (fpsPref != null) {
+                if (PreferenceConfiguration.AUTO_VALUE.equals(fps)) {
+                    fpsPref.setSummary(getString(R.string.si_pref_fps_auto_sub,
+                            Math.round(Float.parseFloat(PreferenceConfiguration.resolveFps(context, fps)))));
+                }
+                else {
+                    fpsPref.setSummary(R.string.si_pref_fps_sub);
+                }
+            }
+
+            boolean manual = PreferenceConfiguration.MANUAL_VALUE.equals(quality);
+            Preference qualityPref = findPreference(PreferenceConfiguration.QUALITY_PREF_STRING);
+            if (qualityPref != null) {
+                qualityPref.setSummary(manual ? R.string.si_pref_quality_manual_sub : R.string.si_pref_quality_auto_sub);
+            }
+            Preference bitratePref = findPreference(PreferenceConfiguration.BITRATE_PREF_STRING);
+            if (bitratePref != null) {
+                bitratePref.setVisible(manual);
+            }
+        }
+
+        /** Opens a "Custom…" entry's input (the Advanced custom resolution / frame rate field). */
+        private void openCustomInput(String key) {
+            Preference pref = findPreference(key);
+            if (pref instanceof EditTextPreference) {
+                SiPreferenceDialogs.editText(this, (EditTextPreference) pref);
+            }
         }
 
         @NonNull
@@ -886,6 +958,12 @@ public class StreamSettings extends AppCompatActivity {
             }
             addNativeFrameRateEntry(maxSupportedFps, false);
 
+            // "Custom…" ends both lists, as on the desktop
+            appendPreferenceEntry((ListPreference) findPreference(PreferenceConfiguration.RESOLUTION_PREF_STRING),
+                    getString(R.string.si_custom_ellipsis), CUSTOM_VALUE);
+            appendPreferenceEntry((ListPreference) findPreference(PreferenceConfiguration.FPS_PREF_STRING),
+                    getString(R.string.si_custom_ellipsis), CUSTOM_VALUE);
+
             // Android L introduces the drop duplicate behavior of releaseOutputBuffer()
             // that the unlock FPS option relies on to not massively increase latency.
             findPreference(PreferenceConfiguration.UNLOCK_FPS_STRING).setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -947,6 +1025,12 @@ public class StreamSettings extends AppCompatActivity {
                     SharedPreferences prefs = getPrefs();
                     String valueStr = (String) newValue;
 
+                    // "Custom…" asks for the size; saving it selects it
+                    if (CUSTOM_VALUE.equals(valueStr)) {
+                        openCustomInput(PreferenceConfiguration.CUSTOM_RESOLUTION_PREF_STRING);
+                        return false;
+                    }
+
                     // Detect if this value is the native resolution option
                     CharSequence[] values = ((ListPreference)preference).getEntryValues();
                     boolean isNativeRes = true;
@@ -968,6 +1052,7 @@ public class StreamSettings extends AppCompatActivity {
 
                     // Write the new bitrate value
                     resetBitrateToDefault(prefs, valueStr, null);
+                    updateStreamRows(valueStr, null, null);
 
                     // Allow the original preference change to take place
                     return true;
@@ -979,9 +1064,14 @@ public class StreamSettings extends AppCompatActivity {
                     SharedPreferences prefs = getPrefs();
                     String valueStr = (String) newValue;
 
+                    // "Custom…" asks for the rate; saving it selects it
+                    if (CUSTOM_VALUE.equals(valueStr)) {
+                        openCustomInput(PreferenceConfiguration.CUSTOM_REFRESH_RATE_PREF_STRING);
+                        return false;
+                    }
+
                     // If this is native frame rate, show the warning dialog
-                    CharSequence[] values = ((ListPreference)preference).getEntryValues();
-                    if (nativeFramerateShown && values[values.length - 1].toString().equals(newValue.toString())) {
+                    if (nativeFramerateShown && valueStr.equals(nativeFramerateValue)) {
                         Dialog.displayDialog(getActivity(),
                                 getResources().getString(R.string.title_native_fps_dialog),
                                 getResources().getString(R.string.text_native_res_dialog),
@@ -990,11 +1080,29 @@ public class StreamSettings extends AppCompatActivity {
 
                     // Write the new bitrate value
                     resetBitrateToDefault(prefs, null, valueStr);
+                    updateStreamRows(null, valueStr, null);
 
                     // Allow the original preference change to take place
                     return true;
                 }
             });
+
+            findPreference(PreferenceConfiguration.QUALITY_PREF_STRING).setOnPreferenceChangeListener((preference, newValue) -> {
+                String valueStr = (String) newValue;
+                if (!getPrefs().contains(PreferenceConfiguration.BITRATE_PREF_STRING)) {
+                    // Manual starts from the default for what we'd stream now, and stays there
+                    getPrefs().edit().putInt(PreferenceConfiguration.BITRATE_PREF_STRING,
+                            PreferenceConfiguration.getDefaultBitrate(requireContext())).apply();
+                }
+                if (PreferenceConfiguration.AUTO_VALUE.equals(valueStr)) {
+                    // Commit first so the default is written for Automatic
+                    getPrefs().edit().putString(PreferenceConfiguration.QUALITY_PREF_STRING, valueStr).apply();
+                    resetBitrateToDefault(getPrefs(), null, null);
+                }
+                updateStreamRows(null, null, valueStr);
+                return true;
+            });
+            updateStreamRows(null, null, null);
 
             findPreference("checkbox_enable_perf_logging").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
@@ -1181,7 +1289,9 @@ public class StreamSettings extends AppCompatActivity {
                             return false;
                         }
 
-                        // Save the value and reload settings
+                        // Select it (turning Automatic off), then save the value and reload settings
+                        getPrefs().edit().putString(PreferenceConfiguration.RESOLUTION_PREF_STRING, value).apply();
+                        resetBitrateToDefault(getPrefs(), value, null);
                         editAndReload(PreferenceConfiguration.CUSTOM_RESOLUTION_PREF_STRING, value);
 
                         return true;
@@ -1218,6 +1328,10 @@ public class StreamSettings extends AppCompatActivity {
                         // Remove trailing zeros
                         formattedValue = formattedValue.replaceAll("0+$", "").replaceAll("\\.$", "");
 
+                        // Select it (turning Automatic off); the list entry uses Float.toString
+                        String fpsValue = Float.toString(Float.parseFloat(formattedValue));
+                        getPrefs().edit().putString(PreferenceConfiguration.FPS_PREF_STRING, fpsValue).apply();
+                        resetBitrateToDefault(getPrefs(), null, fpsValue);
                         editAndReload(PreferenceConfiguration.CUSTOM_REFRESH_RATE_PREF_STRING, formattedValue);
 
                         return true;

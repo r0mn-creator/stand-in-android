@@ -3,7 +3,9 @@ package com.limelight.preferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.hardware.display.DisplayManager;
 import android.os.Build;
+import android.util.DisplayMetrics;
 import android.view.Display;
 
 import com.limelight.nvstream.jni.MoonBridge;
@@ -139,8 +141,20 @@ public class PreferenceConfiguration {
 
     private static final String CHECKBOX_ENABLE_COMMIT_TEXT = "checkbox_enable_commit_text";
 
-    static final String DEFAULT_RESOLUTION = "1280x720";
-    static final String DEFAULT_FPS = "60";
+    // Stand-In "It just works" (DESIGN.md): Resolution, Frame rate and Quality start on
+    // Automatic. Automatic resolution and frame rate are stored as "auto" and resolve to this
+    // screen when a stream starts; Quality is "auto" (server adapts it) or "manual".
+    static final String QUALITY_PREF_STRING = "list_quality_mode";
+    static final String AUTO_VALUE = "auto";
+    static final String MANUAL_VALUE = "manual";
+    private static final String AUTO_STREAM_MIGRATED_PREF_STRING = "si_auto_stream_migrated";
+
+    static final String DEFAULT_RESOLUTION = AUTO_VALUE;
+    static final String DEFAULT_FPS = AUTO_VALUE;
+    static final String DEFAULT_QUALITY = AUTO_VALUE;
+    // Used only if this screen can't be read
+    private static final String FALLBACK_RESOLUTION = "1920x1080";
+    private static final String FALLBACK_FPS = "60";
     private static final boolean DEFAULT_ENABLE_ULTRA_LOW_LATENCY = false;
     private static final boolean DEFAULT_ENFORCE_DISPLAY_MODE = false;
     private static final boolean DEFAULT_USE_VIRTUAL_DISPLAY = false;
@@ -231,6 +245,8 @@ public class PreferenceConfiguration {
 
     public int width, height, bitrate;
     public float fps;
+    // Stand-In: which of these follow this screen / the network (see DEFAULT_QUALITY)
+    public boolean autoResolution, autoFrameRate, autoBitrate;
 //    public String customBitrate;
     public boolean forceTightThresholds = false; // default off
     public boolean enableUltraLowLatency;
@@ -581,8 +597,101 @@ public class PreferenceConfiguration {
     public static int getDefaultBitrate(Context context) {
         SharedPreferences prefs = ProfilesManager.getInstance().getOverlayingSharedPreferences(context);
         return getDefaultBitrate(
-                prefs.getString(RESOLUTION_PREF_STRING, DEFAULT_RESOLUTION),
-                prefs.getString(FPS_PREF_STRING, DEFAULT_FPS));
+                resolveResolution(context, prefs.getString(RESOLUTION_PREF_STRING, DEFAULT_RESOLUTION)),
+                resolveFps(context, prefs.getString(FPS_PREF_STRING, DEFAULT_FPS)));
+    }
+
+    private static Display getDefaultDisplay(Context context) {
+        DisplayManager dm = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+        return dm != null ? dm.getDisplay(Display.DEFAULT_DISPLAY) : null;
+    }
+
+    /**
+     * This screen's native size in landscape (width > height), read the way the settings' native
+     * resolution entries read it; {0, 0} if the screen can't be read.
+     */
+    public static int[] getScreenResolution(Context context) {
+        Display display = getDefaultDisplay(context);
+        if (display == null) {
+            return new int[] {0, 0};
+        }
+        int w, h;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Display.Mode mode = display.getMode();
+            w = mode.getPhysicalWidth();
+            h = mode.getPhysicalHeight();
+        }
+        else {
+            DisplayMetrics metrics = new DisplayMetrics();
+            display.getRealMetrics(metrics);
+            w = metrics.widthPixels;
+            h = metrics.heightPixels;
+        }
+        // Video encoders want even sizes
+        return new int[] {Math.max(w, h) & ~1, Math.min(w, h) & ~1};
+    }
+
+    /** This screen's refresh rate (the fastest mode at its current size); 0 if unknown. */
+    public static int getScreenRefreshRate(Context context) {
+        Display display = getDefaultDisplay(context);
+        if (display == null) {
+            return 0;
+        }
+        float rate = display.getRefreshRate();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Display.Mode current = display.getMode();
+            for (Display.Mode candidate : display.getSupportedModes()) {
+                if (candidate.getPhysicalWidth() == current.getPhysicalWidth() &&
+                        candidate.getPhysicalHeight() == current.getPhysicalHeight() &&
+                        candidate.getRefreshRate() > rate) {
+                    rate = candidate.getRefreshRate();
+                }
+            }
+        }
+        return Math.round(rate);
+    }
+
+    /** A stored resolution value as "WxH": Automatic becomes this screen's size. */
+    static String resolveResolution(Context context, String resString) {
+        if (AUTO_VALUE.equals(resString)) {
+            int[] screen = getScreenResolution(context);
+            return screen[0] > 0 ? screen[0] + "x" + screen[1] : FALLBACK_RESOLUTION;
+        }
+        if (!resString.contains("x")) {
+            return convertFromLegacyResolutionString(resString);
+        }
+        return resString;
+    }
+
+    /** A stored frame rate value as a number: Automatic becomes this screen's refresh rate. */
+    static String resolveFps(Context context, String fpsString) {
+        if (AUTO_VALUE.equals(fpsString)) {
+            int rate = getScreenRefreshRate(context);
+            return rate > 0 ? Integer.toString(rate) : FALLBACK_FPS;
+        }
+        return fpsString;
+    }
+
+    static boolean isAutoBitrate(SharedPreferences prefs) {
+        return !MANUAL_VALUE.equals(prefs.getString(QUALITY_PREF_STRING, DEFAULT_QUALITY));
+    }
+
+    /** Existing installs switch Resolution, Frame rate and Quality to Automatic, once. */
+    private static void migrateToAutomaticStream(Context context) {
+        SharedPreferences base = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context);
+        if (base.getBoolean(AUTO_STREAM_MIGRATED_PREF_STRING, false)) {
+            return;
+        }
+        base.edit()
+                .remove(LEGACY_RES_FPS_PREF_STRING)
+                // Manual then starts from the default for the automatic resolution and frame rate
+                .remove(BITRATE_PREF_STRING)
+                .remove(BITRATE_PREF_OLD_STRING)
+                .putString(RESOLUTION_PREF_STRING, AUTO_VALUE)
+                .putString(FPS_PREF_STRING, AUTO_VALUE)
+                .putString(QUALITY_PREF_STRING, AUTO_VALUE)
+                .putBoolean(AUTO_STREAM_MIGRATED_PREF_STRING, true)
+                .commit();
     }
 
     private static FormatOption getVideoFormatValue(Context context) {
@@ -692,6 +801,7 @@ private static int getFramePacingValue(Context context) {
                 .remove(LEGACY_RES_FPS_PREF_STRING)
                 .remove(RESOLUTION_PREF_STRING)
                 .remove(FPS_PREF_STRING)
+                .remove(QUALITY_PREF_STRING)
                 .remove(VIDEO_FORMAT_PREF_STRING)
                 .remove(ENABLE_HDR_PREF_STRING)
                 .remove(UNLOCK_FPS_STRING)
@@ -721,6 +831,8 @@ private static int getFramePacingValue(Context context) {
             prefs = ProfilesManager.getInstance().getOverlayingSharedPreferences(context);
         }
         PreferenceConfiguration config = new PreferenceConfiguration();
+
+        migrateToAutomaticStream(context);
 
         // Migrate legacy preferences to the new locations
         if (prefs.contains(LEGACY_ENABLE_51_SURROUND_PREF_STRING)) {
@@ -790,16 +902,21 @@ private static int getFramePacingValue(Context context) {
         else {
             // Use the new preference location
             String resStr = prefs.getString(RESOLUTION_PREF_STRING, PreferenceConfiguration.DEFAULT_RESOLUTION);
+            config.autoResolution = AUTO_VALUE.equals(resStr);
 
             // Convert legacy resolution strings to the new style
-            if (!resStr.contains("x")) {
+            if (!config.autoResolution && !resStr.contains("x")) {
                 resStr = PreferenceConfiguration.convertFromLegacyResolutionString(resStr);
                 prefs.edit().putString(RESOLUTION_PREF_STRING, resStr).apply();
             }
 
+            // Automatic resolution and frame rate match this screen
+            resStr = resolveResolution(context, resStr);
             config.width = PreferenceConfiguration.getWidthFromResolutionString(resStr);
             config.height = PreferenceConfiguration.getHeightFromResolutionString(resStr);
-            config.fps = Float.parseFloat(prefs.getString(FPS_PREF_STRING, PreferenceConfiguration.DEFAULT_FPS));
+            String fpsStr = prefs.getString(FPS_PREF_STRING, PreferenceConfiguration.DEFAULT_FPS);
+            config.autoFrameRate = AUTO_VALUE.equals(fpsStr);
+            config.fps = Float.parseFloat(resolveFps(context, fpsStr));
         }
 
         if (prefs.contains(LEGACY_STRETCH_PREF_STRING)) {
@@ -834,9 +951,17 @@ private static int getFramePacingValue(Context context) {
         }
 
         // This must happen after the preferences migration to ensure the preferences are populated
-        config.bitrate = prefs.getInt(BITRATE_PREF_STRING, prefs.getInt(BITRATE_PREF_OLD_STRING, 0) * 1000);
-        if (config.bitrate == 0) {
-            config.bitrate = getDefaultBitrate(context);
+        config.autoBitrate = isAutoBitrate(prefs);
+        if (config.autoBitrate) {
+            // Automatic quality starts from the default for what we're streaming and lets the
+            // server adapt it to the network
+            config.bitrate = getDefaultBitrate(config.width + "x" + config.height, Float.toString(config.fps));
+        }
+        else {
+            config.bitrate = prefs.getInt(BITRATE_PREF_STRING, prefs.getInt(BITRATE_PREF_OLD_STRING, 0) * 1000);
+            if (config.bitrate == 0) {
+                config.bitrate = getDefaultBitrate(context);
+            }
         }
 
         config.meteredBitrate = prefs.getInt((METERED_BITRATE_PREF_STRING), 0);

@@ -162,7 +162,14 @@
     <string name="si_pref_fps">Frame rate</string>
     <string name="si_pref_fps_sub">Higher feels smoother.</string>
     <string name="si_pref_quality">Quality</string>
-    <string name="si_pref_quality_sub">Higher looks better but needs a faster network. Resets to a good value when you change resolution or frame rate.</string>
+    <string name="si_pref_quality_auto_sub">Adjusts to your network while you use it.</string>
+    <string name="si_pref_quality_manual_sub">Stays at the bitrate you set. Lower it if the picture stutters.</string>
+    <string name="si_pref_resolution_auto_sub">Matches this screen (%1$d × %2$d).</string>
+    <string name="si_pref_fps_auto_sub">Matches this screen (%1$d FPS).</string>
+    <string name="si_pref_bitrate">Bitrate</string>
+    <string name="si_automatic">Automatic</string>
+    <string name="si_manual">Manual</string>
+    <string name="si_custom_ellipsis">Custom…</string>
     <string name="si_pref_stats">Show performance stats</string>
     <string name="si_pref_stats_sub">Frame rate and delay in a corner of the screen.</string>
     <string name="si_pref_sound_output">Sound output</string>

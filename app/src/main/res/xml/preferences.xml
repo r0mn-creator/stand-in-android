@@ -14,27 +14,35 @@
         <PreferenceCategory
             android:key="si_grp_picture"
             android:title="@string/si_grp_picture">
+            <!-- Resolution, Frame rate and Quality start on Automatic (DESIGN.md "It just works");
+                 StreamSettings sets their subtitles and shows Bitrate only for Manual quality -->
             <ListPreference
-                android:defaultValue="1280x720"
+                android:defaultValue="auto"
                 android:entries="@array/resolution_names"
                 android:entryValues="@array/resolution_values"
                 android:key="list_resolution"
                 android:summary="@string/si_pref_resolution_sub"
                 android:title="@string/si_pref_resolution" />
             <ListPreference
-                android:defaultValue="60"
+                android:defaultValue="auto"
                 android:entries="@array/fps_names"
                 android:entryValues="@array/fps_values"
                 android:key="list_fps"
                 android:summary="@string/si_pref_fps_sub"
                 android:title="@string/si_pref_fps" />
+            <ListPreference
+                android:defaultValue="auto"
+                android:entries="@array/si_quality_names"
+                android:entryValues="@array/si_quality_values"
+                android:key="list_quality_mode"
+                android:summary="@string/si_pref_quality_auto_sub"
+                android:title="@string/si_pref_quality" />
             <com.limelight.preferences.SeekBarPreference
                 android:dialogMessage="@string/summary_seekbar_bitrate"
                 android:key="seekbar_bitrate_kbps"
                 android:max="300000"
-                android:summary="@string/si_pref_quality_sub"
                 android:text="@string/suffix_seekbar_bitrate_mbps"
-                android:title="@string/si_pref_quality"
+                android:title="@string/si_pref_bitrate"
                 seekbar:divisor="1000"
                 seekbar:keyStep="1000"
                 seekbar:min="500"
