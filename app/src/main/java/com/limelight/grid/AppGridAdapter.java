@@ -126,6 +126,12 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
         Collections.sort(list, new Comparator<AppView.AppObject>() {
             @Override
             public int compare(AppView.AppObject lhs, AppView.AppObject rhs) {
+                // "Desktop" is always first
+                boolean lDesktop = lhs.app.getAppName().equalsIgnoreCase("Desktop");
+                boolean rDesktop = rhs.app.getAppName().equalsIgnoreCase("Desktop");
+                if (lDesktop != rDesktop) {
+                    return lDesktop ? -1 : 1;
+                }
                 int lIndex = lhs.app.getAppIndex();
                 int rIndex = rhs.app.getAppIndex();
                 if (lIndex == rIndex) {
@@ -176,7 +182,7 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
             // Show the play button overlay
             overlayView.setImageResource(R.drawable.ic_play);
             overlayView.setVisibility(View.VISIBLE);
-            gridMask.setBackgroundColor(0x66000000);
+            gridMask.setBackgroundColor(context.getColor(R.color.si_scrim));
         }
         else {
             overlayView.setVisibility(View.GONE);
@@ -193,11 +199,11 @@ public class AppGridAdapter extends GenericGridAdapter<AppView.AppObject> {
             stateView.setVisibility(obj.isRunning || obj.isHidden ? View.VISIBLE : View.GONE);
             if (obj.isRunning) {
                 stateView.setText(R.string.si_app_running);
-                stateView.setTextColor(0xFF2DD4BF);
+                stateView.setTextColor(context.getColor(R.color.si_accent));
             }
             else if (obj.isHidden) {
                 stateView.setText(R.string.si_app_hidden);
-                stateView.setTextColor(0xFF98A2B3);
+                stateView.setTextColor(context.getColor(R.color.si_muted));
             }
             else {
                 stateView.setText("");

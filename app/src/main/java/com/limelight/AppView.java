@@ -23,6 +23,7 @@ import com.limelight.utils.ServerHelper;
 import com.limelight.utils.ShortcutHelper;
 import com.limelight.utils.SpinnerDialog;
 import com.limelight.utils.UiHelper;
+import com.limelight.ui.si.SiMenu;
 
 import android.app.Activity;
 import android.app.Service;
@@ -446,72 +447,65 @@ public class AppView extends AppCompatActivity implements AdapterFragmentCallbac
         }
     }
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-        AppObject selectedApp = (AppObject) appGridAdapter.getItem(info.position);
-
-        menu.setHeaderTitle(selectedApp.app.getAppName());
+    // The app menu (long-press, or pressing an app while something is running): a Stand-In popup
+    private void showAppMenu(final int position, final View targetView) {
+        SiMenu menu = new SiMenu(this).minWidth(240);
+        AppObject selectedApp = (AppObject) appGridAdapter.getItem(position);
 
         if (lastRunningAppId == 0) {
             if (prefConfig.useVirtualDisplay) {
-                menu.add(Menu.NONE, START_OR_RESUME_ID, 1, getResources().getString(R.string.applist_menu_start_primarydisplay));
+                menu.add(START_OR_RESUME_ID, 0, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_start_primarydisplay)));
             } else {
-                menu.add(Menu.NONE, START_WITH_VDISPLAY, 1, getResources().getString(R.string.applist_menu_start_vdisplay));
+                menu.add(START_WITH_VDISPLAY, 0, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_start_vdisplay)));
             }
         } else {
             if (lastRunningAppId == selectedApp.app.getAppId()) {
-                menu.add(Menu.NONE, START_OR_RESUME_ID, 1, getResources().getString(R.string.applist_menu_resume));
-                menu.add(Menu.NONE, QUIT_ID, 2, getResources().getString(R.string.applist_menu_quit));
+                menu.add(START_OR_RESUME_ID, 0, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_resume)));
+                menu.add(QUIT_ID, 0, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_quit)));
             }
             else {
                 if (prefConfig.useVirtualDisplay) {
-                    menu.add(Menu.NONE, START_WITH_QUIT_VDISPLAY, 1, getResources().getString(R.string.applist_menu_quit_and_start));
-                    menu.add(Menu.NONE, START_WITH_QUIT, 2, getResources().getString(R.string.applist_menu_quit_and_start_primarydisplay));
+                    menu.add(START_WITH_QUIT_VDISPLAY, 0, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_quit_and_start)));
+                    menu.add(START_WITH_QUIT, 0, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_quit_and_start_primarydisplay)));
                 } else{
-                    menu.add(Menu.NONE, START_WITH_QUIT, 1, getResources().getString(R.string.applist_menu_quit_and_start));
-                    menu.add(Menu.NONE, START_WITH_QUIT_VDISPLAY, 2, getResources().getString(R.string.applist_menu_quit_and_start_vdisplay));
+                    menu.add(START_WITH_QUIT, 0, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_quit_and_start)));
+                    menu.add(START_WITH_QUIT_VDISPLAY, 0, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_quit_and_start_vdisplay)));
                 }
             }
         }
 
         // Only show the hide checkbox if this is not the currently running app or it's already hidden
         if (lastRunningAppId != selectedApp.app.getAppId() || selectedApp.isHidden) {
-            MenuItem hideAppItem = menu.add(Menu.NONE, HIDE_APP_ID, 3, getResources().getString(R.string.applist_menu_hide_app));
-            hideAppItem.setCheckable(true);
-            hideAppItem.setChecked(selectedApp.isHidden);
+            menu.addChoice(HIDE_APP_ID, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_hide_app)), selectedApp.isHidden);
         }
 
-        menu.add(Menu.NONE, VIEW_DETAILS_ID, 4, getResources().getString(R.string.applist_menu_details));
+        menu.add(VIEW_DETAILS_ID, 0, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_details)));
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Only add an option to create shortcut if box art is loaded
             // and when we're in grid-mode (not list-mode).
-            ImageView appImageView = info.targetView.findViewById(R.id.grid_image);
+            ImageView appImageView = targetView.findViewById(R.id.grid_image);
             if (appImageView != null) {
                 // We have a grid ImageView, so we must be in grid-mode
                 BitmapDrawable drawable = (BitmapDrawable)appImageView.getDrawable();
                 if (drawable != null && drawable.getBitmap() != null) {
                     // We have a bitmap loaded too
-                    menu.add(Menu.NONE, CREATE_SHORTCUT_ID, 5, getResources().getString(R.string.applist_menu_scut));
+                    menu.add(CREATE_SHORTCUT_ID, 0, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_scut)));
                 }
             }
         }
 
-        menu.add(Menu.NONE, EXPORT_LAUNCHER_FILE_ID, 6, getResources().getString(R.string.applist_menu_export_launcher));
+        menu.add(EXPORT_LAUNCHER_FILE_ID, 0, com.limelight.ui.si.Si.sentenceCase(getResources().getString(R.string.applist_menu_export_launcher)));
+        menu.listener(id -> onAppAction(id, position, targetView));
+        menu.show(targetView.findViewById(R.id.si_app_art) != null ? targetView.findViewById(R.id.si_app_art) : targetView, true);
     }
 
     @Override
     public void onContextMenuClosed(Menu menu) {
     }
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        final AppObject app = (AppObject) appGridAdapter.getItem(info.position);
-        int itemId = item.getItemId();
+    private boolean onAppAction(final int itemId, int position, View targetView) {
+        final AppObject app = (AppObject) appGridAdapter.getItem(position);
         switch (itemId) {
             case START_WITH_QUIT:
             case START_WITH_QUIT_VDISPLAY: {
@@ -585,7 +579,7 @@ public class AppView extends AppCompatActivity implements AdapterFragmentCallbac
             }
 
             case HIDE_APP_ID: {
-                if (item.isChecked()) {
+                if (app.isHidden) {
                     // Transitioning hidden to shown
                     hiddenAppIds.remove(app.app.getAppId());
                 } else {
@@ -597,7 +591,7 @@ public class AppView extends AppCompatActivity implements AdapterFragmentCallbac
             }
 
             case CREATE_SHORTCUT_ID: {
-                ImageView appImageView = info.targetView.findViewById(R.id.grid_image);
+                ImageView appImageView = targetView.findViewById(R.id.grid_image);
                 Bitmap appBits = ((BitmapDrawable) appImageView.getDrawable()).getBitmap();
                 if (!shortcutHelper.createPinnedGameShortcut(computer, app.app, appBits)) {
                     Toast.makeText(AppView.this, getResources().getString(R.string.unable_to_pin_shortcut), Toast.LENGTH_LONG).show();
@@ -623,7 +617,7 @@ public class AppView extends AppCompatActivity implements AdapterFragmentCallbac
             }
 
             default: {
-                return super.onContextItemSelected(item);
+                return false;
             }
         }
     }
@@ -789,7 +783,7 @@ public class AppView extends AppCompatActivity implements AdapterFragmentCallbac
                     if (prefConfig.resumeWithoutConfirm && lastRunningAppId == app.app.getAppId()) {
                         ServerHelper.doStart(AppView.this, app.app, computer, managerBinder, prefConfig.useVirtualDisplay);
                     } else {
-                        openContextMenu(arg1);
+                        showAppMenu(pos, arg1);
                     }
                 } else {
                     if (prefConfig.useVirtualDisplay && !(computer.vDisplaySupported && computer.vDisplayDriverReady)) {
@@ -805,9 +799,48 @@ public class AppView extends AppCompatActivity implements AdapterFragmentCallbac
                 }
             }
         });
-        UiHelper.applyStatusBarPadding(listView);
-        registerForContextMenu(listView);
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            showAppMenu(position, view);
+            return true;
+        });
+        // Focused card: scales 1.04 with the focus ring on its artwork
+        gridView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                highlightCard(gridView, view);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                highlightCard(gridView, null);
+            }
+        });
+        gridView.setOnFocusChangeListener((v, hasFocus) ->
+                highlightCard(gridView, hasFocus && !gridView.isInTouchMode() ? gridView.getSelectedView() : null));
         listView.requestFocus();
+    }
+
+    private View highlightedCard;
+
+    private void highlightCard(GridView gridView, View card) {
+        if (highlightedCard == card) {
+            return;
+        }
+        if (highlightedCard != null) {
+            highlightedCard.animate().scaleX(1f).scaleY(1f).setDuration(120).start();
+            View art = highlightedCard.findViewById(R.id.si_app_art);
+            if (art != null) {
+                art.setForeground(null);
+            }
+        }
+        highlightedCard = card != null && gridView.hasFocus() ? card : null;
+        if (highlightedCard != null) {
+            highlightedCard.animate().scaleX(1.04f).scaleY(1.04f).setDuration(120).start();
+            View art = highlightedCard.findViewById(R.id.si_app_art);
+            if (art != null) {
+                art.setForeground(getDrawable(R.drawable.si_focus_ring_md));
+            }
+        }
     }
 
     public static class AppObject {

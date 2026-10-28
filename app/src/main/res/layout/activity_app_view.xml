@@ -4,52 +4,35 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/si_ground"
-    android:paddingStart="24dp"
-    android:paddingEnd="24dp"
-    android:paddingTop="12dp"
     tools:context=".AppView">
 
+    <!-- Header: back + the PC's name -->
     <LinearLayout
         android:id="@+id/appHeader"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="@dimen/si_size_header_height"
         android:layout_alignParentTop="true"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
+        android:paddingStart="@dimen/si_size_gutter"
+        android:paddingEnd="@dimen/si_size_gutter">
 
         <ImageButton
             android:id="@+id/siBackButton"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="@drawable/si_icon_button"
+            style="@style/SiIconButton"
             android:contentDescription="@string/si_back"
             android:src="@drawable/ic_si_back" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/appListText"
+            style="@style/SiText.Title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/si_space_md"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/appListText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
-                android:preferKeepClear="true"
-                android:textColor="@color/si_text"
-                android:textSize="24sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/si_choose_app"
-                android:textColor="@color/si_muted"
-                android:textSize="14sp" />
-        </LinearLayout>
+            android:ellipsize="end"
+            android:preferKeepClear="true"
+            android:singleLine="true" />
     </LinearLayout>
 
     <FrameLayout
@@ -58,7 +41,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/appHeader"
         android:layout_alignParentBottom="true"
-        android:layout_marginTop="16dp" />
+        android:clipChildren="false" />
 
     <!-- Profiles aren't part of Stand-In's design; kept for the existing code -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton

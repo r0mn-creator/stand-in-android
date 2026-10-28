@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Compact app card, used by default on small screens -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Compact app card (Settings > Appearance > Use small box art): box art 3:4 with radius md, the name under it in bodyStrong.
+     The focused card scales 1.04 and gets the focus ring on its artwork (AppView). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="148dp"
-    android:layout_height="196dp"
-    android:padding="6dp">
+    android:layout_width="128dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/si_space_xs"
+    android:paddingTop="@dimen/si_space_sm"
+    android:paddingEnd="@dimen/si_space_xs"
+    android:paddingBottom="@dimen/si_space_sm">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@drawable/si_card"
-        android:orientation="vertical"
-        android:padding="8dp">
+    <FrameLayout
+        android:id="@+id/si_app_art"
+        android:layout_width="112dp"
+        android:layout_height="149dp">
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            app:cardBackgroundColor="@color/si_ground"
-            app:cardCornerRadius="14dp"
+            android:layout_height="match_parent"
+            app:cardBackgroundColor="@color/si_surface"
+            app:cardCornerRadius="@dimen/si_radius_md"
             app:cardElevation="0dp">
 
             <ImageView
@@ -34,43 +36,36 @@
 
                 <ImageView
                     android:id="@+id/grid_overlay"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
                     android:layout_centerInParent="true" />
 
                 <!-- Shown by the art loader only when there is no artwork -->
                 <TextView
                     android:id="@+id/grid_text"
+                    style="@style/SiText.BodyStrong"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:padding="8dp"
-                    android:textColor="@color/si_muted"
-                    android:textSize="16sp" />
+                    android:padding="@dimen/si_space_sm"
+                    android:textColor="@color/si_muted" />
             </RelativeLayout>
         </androidx.cardview.widget.CardView>
+    </FrameLayout>
 
-        <TextView
-            android:id="@+id/si_app_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp"
-            android:ellipsize="end"
-            android:fontFamily="sans-serif-medium"
-            android:maxLines="1"
-            android:textColor="@color/si_text"
-            android:textSize="14sp" />
+    <TextView
+        android:id="@+id/si_app_name"
+        style="@style/SiText.BodyStrong"
+        android:layout_width="112dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/si_space_xs"
+        android:ellipsize="end"
+        android:singleLine="true" />
 
-        <TextView
-            android:id="@+id/si_app_state"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp"
-            android:paddingTop="2dp"
-            android:textColor="@color/si_muted"
-            android:textSize="12sp" />
-    </LinearLayout>
-</FrameLayout>
+    <TextView
+        android:id="@+id/si_app_state"
+        style="@style/SiText.Caption"
+        android:layout_width="112dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/si_muted" />
+</LinearLayout>
